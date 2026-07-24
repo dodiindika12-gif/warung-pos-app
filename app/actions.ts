@@ -10,10 +10,11 @@ export async function getProducts() {
   return rows;
 }
 
-export async function addProduct(data: { name: string; category: string; cost_price: number; selling_price: number; stock: number }) {
+// UPDATE BARCODE: Menambahkan parameter barcode ke dalam insert database
+export async function addProduct(data: { name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number }) {
   await turso.execute({
-    sql: 'INSERT INTO products (name, category, cost_price, selling_price, stock) VALUES (?, ?, ?, ?, ?)',
-    args: [data.name, data.category, data.cost_price, data.selling_price, data.stock]
+    sql: 'INSERT INTO products (name, barcode, category, cost_price, selling_price, stock) VALUES (?, ?, ?, ?, ?, ?)',
+    args: [data.name, data.barcode, data.category, data.cost_price, data.selling_price, data.stock]
   });
   return { success: true };
 }

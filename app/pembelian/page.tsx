@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getProducts, addPurchase, getRecentPurchases } from '../actions';
+import { getProducts, getRecentPurchases, addPurchase } from '../actions';
 
-type Product = { id: number; name: string; cost_price: number; stock: number };
+type Product = { id: number; name: string; stock: number; cost_price: number };
 type Purchase = { id: number; product_name: string; quantity: number; cost_price: number; total_cost: number; created_at: string };
 
 export default function PembelianPage() {
@@ -11,135 +11,137 @@ export default function PembelianPage() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(false);
   
-  const [selectedProductId, setSelectedProductId] = useState<number | ''>('');
-  const [quantity, setQuantity] = useState<number | ''>('');
-  const [costPrice, setCostPrice] = useState<number | ''>('');
+  const [formData, setFormData] = useState({ productId: '', quantity: '', costPrice: '' });
 
   useEffect(() => {
     loadData();
   }, []);
 
-  async function loadData() {
+async function loadData() {
     const prods = await getProducts();
-    const formattedProds = prods.map((row: any) => ({
-      id: row.id, name: row.name, cost_price: row.cost_price, stock: row.stock
-    }));
-    setProducts(formattedProds);
+    const purchs = await getRecentPurchases();
 
-    const purc = await getRecentPurchases();
-    // @ts-ignore
-    setPurchases(purc);
+    // Trik JSON ini akan mengubah format bawaan database menjadi "plain object" (objek biasa).
+    // Ini sekaligus menghilangkan garis merah di VS Code dan error abu-abu di terminal!
+    setProducts(JSON.parse(JSON.stringify(prods)));
+    setPurchases(JSON.parse(JSON.stringify(purchs)));
   }
 
-  // Auto-fill harga modal jika barang dipilih
-  const handleProductChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const id = Number(e.target.value);
-    setSelectedProductId(id);
-    const prod = products.find(p => p.id === id);
-    if (prod) setCostPrice(prod.cost_price);
+  const handleProductSelect = (id: string) => {
+    const prod = products.find(p => p.id.toString() === id);
+    setFormData({ 
+      ...formData, 
+      productId: id, 
+      costPrice: prod ? prod.cost_price.toString() : '' 
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProductId || !quantity || !costPrice) return alert('Lengkapi semua data!');
+    if (!formData.productId) return alert('Pilih produk dulu!');
     
     setLoading(true);
-    try {
-      await addPurchase(Number(selectedProductId), Number(quantity), Number(costPrice));
-      alert('Berhasil mencatat restock! Stok otomatis bertambah.');
-      setSelectedProductId('');
-      setQuantity('');
-      setCostPrice('');
-      await loadData();
-    } catch (error) {
-      console.error(error);
-      alert('Gagal mencatat pembelian');
-    } finally {
-      setLoading(false);
-    }
+    await addPurchase(Number(formData.productId), Number(formData.quantity), Number(formData.costPrice));
+    
+    setFormData({ productId: '', quantity: '', costPrice: '' });
+    await loadData();
+    alert('Pembelian berhasil dicatat!');
+    setLoading(false);
   };
 
-  const totalCostEstimate = (Number(quantity) || 0) * (Number(costPrice) || 0);
-
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-8">🚚 Pembelian & Restock Barang</h1>
-
-      <div className="flex gap-8">
-        {/* Form Kulakan */}
-        <div className="w-1/3 bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-fit">
-          <h2 className="text-xl font-bold mb-4">Catat Kulakan Baru</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Pilih Barang</label>
-              <select required value={selectedProductId} onChange={handleProductChange} className="w-full border p-2 rounded bg-white">
-                <option value="" disabled>-- Pilih Barang --</option>
-                {products.map(p => (
-                  <option key={p.id} value={p.id}>{p.name} (Stok: {p.stock})</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="flex gap-4">
-              <div className="w-1/2">
-                <label className="block text-sm text-gray-600 mb-1">Jml Ditambah (Qty)</label>
-                <input required type="number" min="1" value={quantity} onChange={e => setQuantity(e.target.value === '' ? '' : Number(e.target.value))} className="w-full border p-2 rounded" />
-              </div>
-              <div className="w-1/2">
-                <label className="block text-sm text-gray-600 mb-1">Harga Beli/Pcs Baru</label>
-                <input required type="number" min="0" value={costPrice} onChange={e => setCostPrice(e.target.value === '' ? '' : Number(e.target.value))} className="w-full border p-2 rounded" />
-              </div>
-            </div>
-
-            <div className="bg-gray-50 p-3 rounded border text-right">
-              <span className="text-sm text-gray-500 block">Total Bayar ke Agen:</span>
-              <span className="font-bold text-lg text-red-600">Rp {totalCostEstimate.toLocaleString('id-ID')}</span>
-            </div>
-
-            <button disabled={loading} type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-bold mt-4 transition">
-              {loading ? 'Menyimpan...' : 'Simpan Restock'}
-            </button>
-          </form>
+    <div className="flex w-full h-full p-8 overflow-y-auto">
+      <div className="flex flex-col w-full max-w-7xl mx-auto">
+        
+        <div className="mb-8">
+          <h1 className="text-3xl font-black text-gray-800">🚚 Kulakan & Restock</h1>
+          <p className="text-gray-500 font-medium mt-1">Catat belanja barang untuk menambah stok dan menghitung HPP</p>
         </div>
 
-        {/* Riwayat Kulakan */}
-        <div className="w-2/3 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <h2 className="text-xl font-bold mb-4">Riwayat Kulakan Terakhir</h2>
-          <div className="overflow-x-auto">
+        <div className="flex gap-8 flex-col xl:flex-row">
+          
+          {/* FORM TAMBAH PEMBELIAN */}
+          <div className="w-full xl:w-1/3 bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 h-fit">
+            <h2 className="text-xl font-bold mb-6 text-gray-800">Catat Belanja</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Pilih Barang</label>
+                <select 
+                  required 
+                  value={formData.productId} 
+                  onChange={e => handleProductSelect(e.target.value)} 
+                  className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition appearance-none"
+                >
+                  <option value="">-- Pilih Barang --</option>
+                  {products.map(p => (
+                    <option key={p.id} value={p.id}>{p.name} (Stok: {p.stock})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Jumlah Beli (Pcs)</label>
+                <input 
+                  required type="number" 
+                  value={formData.quantity} 
+                  onChange={e => setFormData({...formData, quantity: e.target.value})} 
+                  className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" 
+                  placeholder="0"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Harga Beli Baru (/Pcs)</label>
+                <input 
+                  required type="number" 
+                  value={formData.costPrice} 
+                  onChange={e => setFormData({...formData, costPrice: e.target.value})} 
+                  className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" 
+                  placeholder="0"
+                />
+                <p className="text-[10px] text-gray-400 mt-2 font-medium">*Harga beli ini akan mengupdate Harga Modal barang di database.</p>
+              </div>
+
+              <button disabled={loading} type="submit" className="w-full bg-[#EA7C2A] hover:bg-[#d66b1f] text-white font-bold py-4 rounded-2xl shadow-[0_8px_20px_-6px_rgba(234,124,42,0.5)] transition mt-4">
+                {loading ? 'Menyimpan...' : 'Simpan Transaksi Belanja'}
+              </button>
+            </form>
+          </div>
+
+          {/* TABEL RIWAYAT KULAKAN */}
+          <div className="w-full xl:w-2/3 bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 overflow-x-auto">
+            <h2 className="text-xl font-bold mb-6 text-gray-800">Riwayat Belanja Terakhir</h2>
+            
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b bg-gray-50">
-                  <th className="p-3">Tanggal</th>
-                  <th className="p-3">Barang</th>
-                  <th className="p-3 text-center">Qty</th>
-                  <th className="p-3 text-right">Total Biaya</th>
+                <tr className="border-b-2 border-gray-100 text-xs uppercase tracking-wider text-gray-400">
+                  <th className="pb-4 font-bold">Tanggal</th>
+                  <th className="pb-4 font-bold">Barang</th>
+                  <th className="pb-4 text-center font-bold">Qty</th>
+                  <th className="pb-4 font-bold text-right">Harga Satuan</th>
+                  <th className="pb-4 font-bold text-right">Total Biaya</th>
                 </tr>
               </thead>
               <tbody>
-                {purchases.map((p) => (
-                  <tr key={p.id} className="border-b hover:bg-gray-50">
-                    <td className="p-3 text-sm text-gray-600">
-                      {new Date(p.created_at).toLocaleDateString('id-ID')}
-                    </td>
-                    <td className="p-3 font-semibold">{p.product_name}</td>
-                    <td className="p-3 text-center">
-                      <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">
-                        +{p.quantity}
-                      </span>
-                    </td>
-                    <td className="p-3 text-right font-bold text-gray-700">
-                      Rp {p.total_cost.toLocaleString('id-ID')}
-                    </td>
-                  </tr>
-                ))}
-                {purchases.length === 0 && (
+                {purchases.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="p-4 text-center text-gray-500">Belum ada riwayat pembelian.</td>
+                    <td colSpan={5} className="py-8 text-center text-gray-400 font-medium">Belum ada riwayat belanja.</td>
                   </tr>
+                ) : (
+                  purchases.map((p) => (
+                    <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                      <td className="py-4 text-sm font-medium text-gray-500">{new Date(p.created_at).toLocaleDateString('id-ID')}</td>
+                      <td className="py-4 font-bold text-gray-800 text-sm">{p.product_name}</td>
+                      <td className="py-4 text-center font-bold text-gray-800 bg-gray-50 rounded-xl my-2 block w-max mx-auto px-4 py-1">{p.quantity}</td>
+                      <td className="py-4 text-right text-gray-500 font-medium text-sm">Rp {p.cost_price.toLocaleString('id-ID')}</td>
+                      <td className="py-4 text-right font-black text-orange-600 text-sm">Rp {p.total_cost.toLocaleString('id-ID')}</td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
           </div>
+          
         </div>
       </div>
     </div>

@@ -4,150 +4,111 @@ import { useState, useEffect } from 'react';
 import { getDashboardStats, getTransactionHistory, getDailySales, getMonthlySales } from '../actions';
 
 export default function LaporanPage() {
-  const [activeTab, setActiveTab] = useState<'ringkasan' | 'transaksi' | 'harian' | 'bulanan'>('ringkasan');
-  const [dataRingkasan, setDataRingkasan] = useState<any>(null);
-  const [dataTrx, setDataTrx] = useState<any[]>([]);
-  const [dataHarian, setDataHarian] = useState<any[]>([]);
-  const [dataBulanan, setDataBulanan] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<any>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [daily, setDaily] = useState<any[]>([]);
+  const [monthly, setMonthly] = useState<any[]>([]);
 
   useEffect(() => {
-    async function fetchAllData() {
-      const [stats, trx, harian, bulanan] = await Promise.all([
-        getDashboardStats(),
-        getTransactionHistory(),
-        getDailySales(),
-        getMonthlySales()
-      ]);
-      setDataRingkasan(stats); setDataTrx(trx); setDataHarian(harian); setDataBulanan(bulanan);
-      setLoading(false);
+    async function loadData() {
+      setStats(await getDashboardStats());
+      setHistory(await getTransactionHistory());
+      setDaily(await getDailySales());
+      setMonthly(await getMonthlySales());
     }
-    fetchAllData();
+    loadData();
   }, []);
 
-  if (loading) return <div className="p-8 font-bold">Memuat laporan...</div>;
+  if (!stats) return <div className="p-8 text-gray-500 font-medium flex items-center justify-center h-full">Memuat Laporan...</div>;
 
-  const labaKotor = dataRingkasan.revenue - dataRingkasan.cogs;
-  const labaBersih = labaKotor - dataRingkasan.expense;
+  const grossProfit = stats.revenue - stats.cogs;
+  const netProfit = grossProfit - stats.expense;
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">📊 Laporan Lengkap</h1>
+    <div className="flex w-full h-full p-8 overflow-y-auto">
+      <div className="flex flex-col w-full max-w-7xl mx-auto space-y-8">
+        
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-black text-gray-800">📊 Laporan & Analisis</h1>
+          <p className="text-gray-500 font-medium mt-1">Ringkasan performa penjualan dan profitabilitas warung Anda hari ini</p>
+        </div>
 
-      {/* Menu Tabs */}
-      <div className="flex gap-4 border-b border-gray-300 mb-8">
-        {[
-          { id: 'ringkasan', label: 'Ringkasan Hari Ini' },
-          { id: 'transaksi', label: 'Riwayat Transaksi' },
-          { id: 'harian', label: 'Rekap Harian' },
-          { id: 'bulanan', label: 'Rekap Bulanan' },
-        ].map((tab) => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
-            className={`pb-3 px-4 font-bold transition-colors ${activeTab === tab.id ? 'border-b-4 border-blue-600 text-blue-700' : 'text-gray-500 hover:text-gray-800'}`}>
-            {tab.label}
-          </button>
-        ))}
+        {/* Kartu Ringkasan (Top Row) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          <div className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-green-50 rounded-full opacity-50 z-0"></div>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-wide relative z-10">Omzet Hari Ini</p>
+            <p className="text-3xl font-black text-gray-800 mt-2 relative z-10">Rp {stats.revenue.toLocaleString('id-ID')}</p>
+          </div>
+          
+          <div className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-red-50 rounded-full opacity-50 z-0"></div>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-wide relative z-10">Modal Terjual (HPP)</p>
+            <p className="text-2xl font-bold text-gray-600 mt-2 relative z-10">Rp {stats.cogs.toLocaleString('id-ID')}</p>
+          </div>
+          
+          <div className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-orange-50 rounded-full opacity-50 z-0"></div>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-wide relative z-10">Pengeluaran Lainnya</p>
+            <p className="text-2xl font-bold text-orange-500 mt-2 relative z-10">Rp {stats.expense.toLocaleString('id-ID')}</p>
+          </div>
+
+          <div className={`p-6 rounded-[32px] shadow-sm border flex flex-col justify-center relative overflow-hidden ${netProfit >= 0 ? 'bg-[#EA7C2A] border-[#d66b1f] text-white' : 'bg-red-500 border-red-600 text-white'}`}>
+            <p className="text-sm font-bold opacity-80 uppercase tracking-wide relative z-10">Laba Bersih Hari Ini</p>
+            <p className="text-3xl font-black mt-2 relative z-10">Rp {netProfit.toLocaleString('id-ID')}</p>
+          </div>
+        </div>
+
+        <div className="flex gap-8 flex-col xl:flex-row">
+          
+          {/* Laporan Penjualan Harian */}
+          <div className="w-full xl:w-2/3 bg-white p-8 rounded-[32px] shadow-sm border border-gray-100">
+            <h2 className="text-xl font-bold mb-6 text-gray-800">Tren Penjualan Harian (30 Hari Terakhir)</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-gray-100 text-xs uppercase tracking-wider text-gray-400">
+                    <th className="pb-4 font-bold">Tanggal</th>
+                    <th className="pb-4 text-center font-bold">Total Trx</th>
+                    <th className="pb-4 text-right font-bold">Omzet</th>
+                    <th className="pb-4 text-right font-bold">Laba Kotor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {daily.map((d: any, idx: number) => (
+                    <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                      <td className="py-4 text-sm font-bold text-gray-700">{new Date(d.date).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}</td>
+                      <td className="py-4 text-center"><span className="bg-gray-100 text-gray-600 font-bold px-3 py-1 rounded-lg text-xs">{d.total_trx} Trx</span></td>
+                      <td className="py-4 text-right text-gray-800 font-bold text-sm">Rp {d.total_revenue.toLocaleString('id-ID')}</td>
+                      <td className="py-4 text-right text-green-600 font-black text-sm">Rp {d.total_profit.toLocaleString('id-ID')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Top 5 Barang Terlaris */}
+          <div className="w-full xl:w-1/3 bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 h-fit">
+            <h2 className="text-xl font-bold mb-6 text-gray-800">🔥 Top 5 Terlaris</h2>
+            <div className="space-y-4">
+              {stats.bestSellers.map((item: any, idx: number) => (
+                <div key={idx} className="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border border-transparent hover:border-orange-200 transition">
+                  <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 font-black flex items-center justify-center">
+                    {idx + 1}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-800 text-sm line-clamp-1">{item.name}</h3>
+                    <p className="text-xs font-medium text-gray-400 mt-1">Terjual: {item.total_sold} Pcs</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
       </div>
-
-      {/* TAB 1: RINGKASAN */}
-      {activeTab === 'ringkasan' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500"><p className="text-sm text-gray-500 font-semibold">Omzet Penjualan</p><p className="text-2xl font-bold mt-2">Rp {dataRingkasan.revenue.toLocaleString('id-ID')}</p></div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500"><p className="text-sm text-gray-500 font-semibold">Laba Kotor</p><p className="text-2xl font-bold mt-2">Rp {labaKotor.toLocaleString('id-ID')}</p></div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500"><p className="text-sm text-gray-500 font-semibold">Pengeluaran Laci</p><p className="text-2xl font-bold mt-2">Rp {dataRingkasan.expense.toLocaleString('id-ID')}</p></div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500"><p className="text-sm text-gray-500 font-semibold">Laba Bersih</p><p className={`text-2xl font-bold mt-2 ${labaBersih >= 0 ? 'text-green-600' : 'text-red-600'}`}>Rp {labaBersih.toLocaleString('id-ID')}</p></div>
-          </div>
-          <div className="flex gap-6">
-            <div className="w-1/2 bg-white p-6 rounded-xl shadow-sm border"><h2 className="font-bold mb-4 border-b pb-2">Rincian Kasir</h2>
-              <div className="flex justify-between items-center mb-2"><span className="text-gray-600">Tunai Masuk</span><span className="font-bold">Rp {dataRingkasan.tunai.toLocaleString('id-ID')}</span></div>
-              <div className="flex justify-between items-center text-red-600 mb-4"><span>Pengeluaran</span><span className="font-bold">- Rp {dataRingkasan.expense.toLocaleString('id-ID')}</span></div>
-              <div className="border-t pt-2 flex justify-between items-center font-bold text-blue-700"><span>Estimasi Laci</span><span>Rp {(dataRingkasan.tunai - dataRingkasan.expense).toLocaleString('id-ID')}</span></div>
-            </div>
-            <div className="w-1/2 bg-white p-6 rounded-xl shadow-sm border"><h2 className="font-bold mb-4 border-b pb-2">Top 5 Terlaris</h2>
-              <ul className="space-y-2">{dataRingkasan.bestSellers.map((item:any, i:number) => <li key={i} className="flex justify-between bg-gray-50 p-2 rounded"><span className="font-semibold">{i+1}. {item.name}</span><span className="text-gray-600">{item.total_sold} Terjual</span></li>)}</ul>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: TRANSAKSI */}
-      {activeTab === 'transaksi' && (
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h2 className="font-bold mb-4 text-xl">Riwayat Transaksi Terbaru</h2>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-100 border-b">
-                <th className="p-3">Waktu</th>
-                <th className="p-3">ID Trx</th>
-                <th className="p-3">Metode</th>
-                <th className="p-3 text-right">Total Belanja</th>
-                <th className="p-3 text-right">Keuntungan (Laba)</th>
-              </tr>
-            </thead>
-            <tbody>{dataTrx.map((t, i) => (
-              <tr key={i} className="border-b hover:bg-gray-50">
-                <td className="p-3 text-gray-600">{new Date(t.created_at).toLocaleString('id-ID')}</td>
-                <td className="p-3 font-mono text-gray-500">#{t.id}</td>
-                <td className="p-3"><span className={`px-2 py-1 rounded text-xs font-bold ${t.payment_method === 'Tunai' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>{t.payment_method}</span></td>
-                <td className="p-3 font-bold text-gray-800 text-right">Rp {t.total_amount.toLocaleString('id-ID')}</td>
-                <td className="p-3 font-bold text-green-600 text-right">Rp {t.profit.toLocaleString('id-ID')}</td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
-      )}
-
-      {/* TAB 3: HARIAN */}
-      {activeTab === 'harian' && (
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h2 className="font-bold mb-4 text-xl">Rekap Penjualan Per Hari</h2>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-100 border-b">
-                <th className="p-3">Tanggal</th>
-                <th className="p-3 text-center">Jumlah Trx</th>
-                <th className="p-3 text-right">Total Pendapatan</th>
-                <th className="p-3 text-right">Total Laba Kotor</th>
-              </tr>
-            </thead>
-            <tbody>{dataHarian.map((h, i) => (
-              <tr key={i} className="border-b hover:bg-gray-50">
-                <td className="p-3 font-semibold">{h.date}</td>
-                <td className="p-3 text-gray-600 text-center">{h.total_trx} Trx</td>
-                <td className="p-3 text-right font-bold text-blue-700">Rp {h.total_revenue.toLocaleString('id-ID')}</td>
-                <td className="p-3 text-right font-bold text-green-600">Rp {h.total_profit.toLocaleString('id-ID')}</td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
-      )}
-
-      {/* TAB 4: BULANAN */}
-      {activeTab === 'bulanan' && (
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
-          <h2 className="font-bold mb-4 text-xl">Rekap Penjualan Per Bulan</h2>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-100 border-b">
-                <th className="p-3">Bulan</th>
-                <th className="p-3 text-center">Jumlah Trx</th>
-                <th className="p-3 text-right">Total Pendapatan</th>
-                <th className="p-3 text-right">Total Laba Kotor</th>
-              </tr>
-            </thead>
-            <tbody>{dataBulanan.map((b, i) => (
-              <tr key={i} className="border-b hover:bg-gray-50">
-                <td className="p-3 font-semibold">{b.month}</td>
-                <td className="p-3 text-gray-600 text-center">{b.total_trx} Trx</td>
-                <td className="p-3 text-right font-bold text-blue-700">Rp {b.total_revenue.toLocaleString('id-ID')}</td>
-                <td className="p-3 text-right font-bold text-green-600">Rp {b.total_profit.toLocaleString('id-ID')}</td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
-      )}
-
     </div>
   );
 }

@@ -2,39 +2,84 @@ import './globals.css';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Sistem Kasir Warung',
-  description: 'Aplikasi POS Sederhana',
+  title: 'Sistem Kasir Modern',
+  description: 'Aplikasi POS dengan UI Modern',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
-      <body className="flex h-screen bg-gray-50 font-sans text-gray-900 overflow-hidden">
-        {/* Sidebar Navigasi */}
-        <aside className="w-64 bg-gray-900 text-white flex flex-col shadow-xl z-50">
-          <div className="p-6 font-bold text-2xl border-b border-gray-800 tracking-wider">
-            🏪 KASIR KITA
-          </div>
-          <nav className="flex-1 p-4 space-y-2 mt-4">
-            <Link href="/" className="block p-3 rounded-lg hover:bg-gray-800 transition">
-              🛒 Kasir (POS)
-            </Link>
-            <Link href="/produk" className="block p-3 rounded-lg hover:bg-gray-800 transition">
-              📦 Produk & Inventaris
-            </Link>
-            <Link href="/pembelian" className="block p-3 rounded-lg hover:bg-gray-800 transition">
-              🚚 Pembelian
-            </Link>
-            <Link href="/laporan" className="block p-3 rounded-lg hover:bg-gray-800 transition">
-              📊 Laporan Lengkap
-            </Link>
-          </nav>
-        </aside>
+      {/* Background luar bergaya gradien/abu-abu lembut ala presentasi desain */}
+      <body className="bg-[#EBE7E0] flex h-screen p-4 md:p-8 font-sans text-gray-800 overflow-hidden">
+        
+        {/* Kontainer Utama Aplikasi (Melayang & Rounded) */}
+        <div className="flex w-full h-full bg-white rounded-[40px] shadow-2xl overflow-hidden border border-gray-100">
+          
+          {/* Sidebar Kiri Minimalis */}
+          <aside className="w-24 bg-white border-r border-gray-100 flex flex-col items-center py-8 gap-8 z-50 overflow-y-auto">
+            {/* Logo */}
+            <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center font-black text-2xl mb-4">
+              C
+            </div>
 
-        {/* Konten Utama */}
-        <main className="flex-1 overflow-y-auto w-full">
-          {children}
-        </main>
+            {/* Navigasi */}
+            <nav className="flex flex-col gap-6 w-full px-4 text-xs font-semibold text-gray-400">
+              <Link href="/" className="flex flex-col items-center gap-1 group text-orange-500">
+                <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition">
+                  {/* Ikon Menu (Aktif) */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  </svg>
+                </div>
+                Menu
+              </Link>
+
+              <Link href="/produk" className="flex flex-col items-center gap-1 group hover:text-gray-800 transition">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center group-hover:bg-gray-50 transition">
+                  {/* Ikon Master Data */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
+                Master
+              </Link>
+
+              <Link href="/pembelian" className="flex flex-col items-center gap-1 group hover:text-gray-800 transition">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center group-hover:bg-gray-50 transition">
+                  {/* Ikon Kulakan */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                Order
+              </Link>
+
+              <Link href="/laporan" className="flex flex-col items-center gap-1 group hover:text-gray-800 transition">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center group-hover:bg-gray-50 transition">
+                  {/* Ikon Laporan */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                Report
+              </Link>
+            </nav>
+
+            {/* Spacer */}
+            <div className="flex-1"></div>
+
+            {/* Profile Placeholder */}
+            <div className="w-10 h-10 bg-gray-200 rounded-full border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
+              <span className="text-xl">👨‍🍳</span>
+            </div>
+          </aside>
+
+          {/* Konten Utama (Berubah per halaman) */}
+          <main className="flex-1 flex overflow-hidden bg-[#FAFAFA]">
+            {children}
+          </main>
+
+        </div>
       </body>
     </html>
   );
