@@ -12,6 +12,12 @@ export default function KasirPage() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+
+  // Modal States
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'Tunai' | 'QRIS/Card'>('Tunai');
+  const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
 
   useEffect(() => {
     loadProducts();
@@ -70,9 +76,12 @@ async function loadProducts() {
   const handleCheckout = async () => {
     if (cart.length === 0) return;
     setLoading(true);
-    await processCheckout(cart, 'Tunai', totalAmount);
+    await processCheckout(cart, paymentMethod, totalAmount);
     alert('Transaksi Berhasil Disimpan!');
     setCart([]);
+    setIsCheckoutModalOpen(false);
+    setPaymentMethod('Tunai');
+    setReceivedAmount('');
     await loadProducts();
     setLoading(false);
   };
@@ -107,24 +116,62 @@ async function loadProducts() {
 
         <div className="flex justify-between items-end mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Daftar {activeCategory === 'All' ? 'Barang' : activeCategory}</h2>
-          <span className="text-sm text-gray-400 font-medium">{filteredProducts.length} Ditemukan</span>
+          
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-400 font-medium">{filteredProducts.length} Ditemukan</span>
+            <div className="flex bg-white rounded-xl border border-gray-100 p-1">
+              <button 
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-lg transition ${viewMode === 'grid' ? 'bg-orange-50 text-orange-500' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                {/* Icon Grid */}
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+              </button>
+              <button 
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-lg transition ${viewMode === 'list' ? 'bg-orange-50 text-orange-500' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                {/* Icon List */}
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Grid Produk */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-10">
-          {filteredProducts.map(p => (
-            <div key={p.id} onClick={() => p.stock > 0 && addToCart(p)} className={`bg-white rounded-[32px] p-6 flex flex-col items-center text-center shadow-sm border border-gray-100 transition ${p.stock > 0 ? 'cursor-pointer hover:shadow-md hover:border-orange-200' : 'opacity-50 cursor-not-allowed'}`}>
-              
-              {/* Inisial Placeholder Murni */}
-              <div className="w-32 h-32 rounded-full bg-gray-50 border-4 border-white shadow-inner mb-4 flex items-center justify-center text-4xl overflow-hidden text-orange-400 font-black">
-                {p.name.charAt(0).toUpperCase()}
-              </div>
-              
-              <h3 className="font-bold text-gray-800 mb-1 line-clamp-1">{p.name}</h3>
-              <p className="text-orange-500 font-bold text-lg mb-3">Rp {p.selling_price.toLocaleString('id-ID')}</p>
-              <p className="text-xs text-gray-400 font-medium">Stok: {p.stock}</p>
-            </div>
-          ))}
+        {/* Konten Produk */}
+        <div className={viewMode === 'grid' ? "grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-10" : "flex flex-col gap-4 pb-10"}>
+          {filteredProducts.map(p => {
+            if (viewMode === 'grid') {
+              return (
+                <div key={p.id} onClick={() => p.stock > 0 && addToCart(p)} className={`bg-white rounded-[32px] p-6 flex flex-col items-center text-center shadow-sm border border-gray-100 transition ${p.stock > 0 ? 'cursor-pointer hover:shadow-md hover:border-orange-200' : 'opacity-50 cursor-not-allowed'}`}>
+                  {/* Inisial Placeholder Murni */}
+                  <div className="w-32 h-32 rounded-full bg-gray-50 border-4 border-white shadow-inner mb-4 flex items-center justify-center text-4xl overflow-hidden text-orange-400 font-black">
+                    {p.name.charAt(0).toUpperCase()}
+                  </div>
+                  
+                  <h3 className="font-bold text-gray-800 mb-1 line-clamp-1">{p.name}</h3>
+                  <p className="text-orange-500 font-bold text-lg mb-3">Rp {p.selling_price.toLocaleString('id-ID')}</p>
+                  <p className="text-xs text-gray-400 font-medium">Stok: {p.stock}</p>
+                </div>
+              );
+            } else {
+              return (
+                <div key={p.id} onClick={() => p.stock > 0 && addToCart(p)} className={`bg-white rounded-[24px] p-4 flex items-center shadow-sm border border-gray-100 transition ${p.stock > 0 ? 'cursor-pointer hover:shadow-md hover:border-orange-200' : 'opacity-50 cursor-not-allowed'}`}>
+                  {/* Inisial Kiri */}
+                  <div className="w-20 h-20 rounded-2xl bg-gray-50 flex-shrink-0 flex items-center justify-center font-black text-3xl text-orange-400 mr-5 shadow-inner">
+                    {p.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 flex flex-col justify-between py-1">
+                    <h3 className="font-bold text-gray-800 text-lg line-clamp-1">{p.name}</h3>
+                    <p className="text-sm text-gray-400 font-medium mt-1">{p.category} &bull; Stok: {p.stock}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-orange-500 font-bold text-xl">Rp {p.selling_price.toLocaleString('id-ID')}</p>
+                  </div>
+                </div>
+              );
+            }
+          })}
         </div>
       </div>
 
@@ -184,12 +231,123 @@ async function loadProducts() {
               <span>Rp {totalAmount.toLocaleString('id-ID')}</span>
             </div>
           </div>
-          <button onClick={handleCheckout} disabled={loading || cart.length === 0} className="w-full bg-[#EA7C2A] hover:bg-[#d66b1f] disabled:bg-gray-300 text-white font-bold py-4 rounded-2xl shadow-[0_8px_20px_-6px_rgba(234,124,42,0.5)]">
-            {loading ? 'Memproses...' : 'Selesaikan Pembayaran'}
+          <button onClick={() => setIsCheckoutModalOpen(true)} disabled={loading || cart.length === 0} className="w-full bg-[#EA7C2A] hover:bg-[#d66b1f] disabled:bg-gray-300 text-white font-bold py-4 rounded-2xl shadow-[0_8px_20px_-6px_rgba(234,124,42,0.5)]">
+            Selesaikan Pembayaran
           </button>
         </div>
 
       </div>
+
+      {/* MODAL PEMBAYARAN */}
+      {isCheckoutModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white text-gray-800 rounded-[32px] w-full max-w-[500px] shadow-2xl flex flex-col overflow-hidden border border-gray-100">
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800">Pembayaran</h2>
+              <button onClick={() => setIsCheckoutModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition bg-gray-50 hover:bg-gray-100 p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="p-6 flex flex-col gap-6 overflow-y-auto max-h-[85vh]">
+              {/* Total Tagihan */}
+              <div className="bg-orange-50 rounded-[24px] p-6 flex flex-col items-center justify-center border border-orange-100">
+                <p className="text-sm text-gray-500 font-medium mb-1">Total Tagihan</p>
+                <p className="text-4xl font-black text-orange-500">Rp {totalAmount.toLocaleString('id-ID')}</p>
+              </div>
+
+              {/* Payment Methods */}
+              <div className="grid grid-cols-2 gap-4">
+                {(['Tunai', 'QRIS/Card'] as const).map(method => {
+                  const isActive = paymentMethod === method;
+                  let bgClass = 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50';
+                  if (isActive) {
+                    bgClass = 'bg-orange-50 border-orange-500 text-orange-600 shadow-sm';
+                  }
+                  
+                  return (
+                    <button 
+                      key={method}
+                      onClick={() => setPaymentMethod(method)}
+                      className={`flex flex-col items-center justify-center p-5 rounded-[24px] border-2 transition ${bgClass}`}
+                    >
+                      {/* Icons */}
+                      {method === 'Tunai' && <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>}
+                      {method === 'QRIS/Card' && <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>}
+                      <span className="font-bold">{method}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Dynamic Content */}
+              {paymentMethod === 'Tunai' ? (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-gray-700">Uang Tunai Diterima</label>
+                    <div className="relative">
+                      <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xl">Rp</span>
+                      <input 
+                        type="number" 
+                        value={receivedAmount}
+                        onChange={(e) => setReceivedAmount(e.target.value ? Number(e.target.value) : '')}
+                        className="w-full bg-white border border-gray-200 rounded-[20px] py-4 pl-14 pr-4 text-gray-800 text-2xl font-bold focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition shadow-sm"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <button onClick={() => setReceivedAmount(totalAmount)} className="bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 border border-gray-200 text-sm py-3 rounded-[16px] font-bold text-gray-600 transition shadow-sm">Uang Pas</button>
+                    <button onClick={() => setReceivedAmount(20000)} className="bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 border border-gray-200 text-sm py-3 rounded-[16px] font-bold text-gray-600 transition shadow-sm">20.000</button>
+                    <button onClick={() => setReceivedAmount(50000)} className="bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 border border-gray-200 text-sm py-3 rounded-[16px] font-bold text-gray-600 transition shadow-sm">50.000</button>
+                    <button onClick={() => setReceivedAmount(100000)} className="bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 border border-gray-200 text-sm py-3 rounded-[16px] font-bold text-gray-600 transition shadow-sm">100.000</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-gray-700">Nominal Transaksi</label>
+                    <input 
+                      type="text" 
+                      value={`Rp ${totalAmount.toLocaleString('id-ID')}`}
+                      readOnly
+                      className="w-full bg-gray-50 border border-gray-200 rounded-[20px] py-4 px-5 text-gray-500 text-xl font-bold focus:outline-none cursor-not-allowed"
+                    />
+                  </div>
+                  
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-gray-700">Bukti Pembayaran (Opsional)</label>
+                    <div className="relative border-2 border-dashed border-gray-200 rounded-[20px] p-2 hover:bg-gray-50 transition bg-white">
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        className="w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100 transition cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Kembalian */}
+              <div className="flex justify-between items-center p-5 bg-gray-50 border border-gray-100 rounded-[24px]">
+                <span className="text-gray-600 font-bold">Kembalian</span>
+                <span className="text-[#EA7C2A] font-black text-2xl">
+                  Rp {paymentMethod === 'Tunai' ? Math.max(0, (Number(receivedAmount) || 0) - totalAmount).toLocaleString('id-ID') : '0'}
+                </span>
+              </div>
+              
+              <button 
+                onClick={handleCheckout} 
+                disabled={loading || (paymentMethod === 'Tunai' && (Number(receivedAmount) || 0) < totalAmount)}
+                className={`w-full py-4 rounded-[20px] font-bold text-white transition ${loading || (paymentMethod === 'Tunai' && (Number(receivedAmount) || 0) < totalAmount) ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#EA7C2A] hover:bg-[#d66b1f] shadow-[0_8px_20px_-6px_rgba(234,124,42,0.5)]'}`}
+              >
+                {loading ? 'Memproses...' : 'Selesaikan Transaksi'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
