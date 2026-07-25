@@ -26,7 +26,7 @@ export default function LaporanPage() {
   const netProfit = grossProfit - stats.expense;
 
   return (
-    <div className="flex w-full h-full p-8 overflow-y-auto">
+    <div className="flex w-full h-full p-4 md:p-8 overflow-y-auto pb-24 md:pb-8">
       <div className="flex flex-col w-full max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
@@ -64,7 +64,7 @@ export default function LaporanPage() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           
           {/* Stok Menipis */}
-          <div className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 h-fit">
+          <div className="bg-white p-6 md:p-8 rounded-2xl md:rounded-[32px] shadow-sm border border-gray-100 h-fit">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-800">⚠️ Stok Menipis</h2>
             </div>
@@ -90,7 +90,7 @@ export default function LaporanPage() {
           </div>
 
           {/* Top 10 Terlaris Hari Ini */}
-          <div className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 h-fit">
+          <div className="bg-white p-6 md:p-8 rounded-2xl md:rounded-[32px] shadow-sm border border-gray-100 h-fit">
             <h2 className="text-xl font-bold mb-6 text-gray-800">🔥 Terlaris Hari Ini</h2>
             <div className="space-y-4">
               {stats.bestSellers.length === 0 ? (
@@ -118,7 +118,7 @@ export default function LaporanPage() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           
           {/* Tren Penjualan 7 Hari Terakhir */}
-          <div className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100">
+          <div className="bg-white p-6 md:p-8 rounded-2xl md:rounded-[32px] shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold mb-6 text-gray-800">📈 Tren Penjualan (7 Hari)</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -148,7 +148,7 @@ export default function LaporanPage() {
           </div>
 
           {/* 10 Transaksi Terakhir */}
-          <div className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col">
+          <div className="bg-white p-6 md:p-8 rounded-2xl md:rounded-[32px] shadow-sm border border-gray-100 flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-800">🧾 10 Transaksi Terakhir</h2>
               <Link href="/riwayat">

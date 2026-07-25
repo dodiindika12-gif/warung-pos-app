@@ -40,35 +40,35 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-24 bg-white border-r border-gray-100 flex flex-col items-center py-8 gap-8 z-50 overflow-y-auto">
+    <aside className="w-full md:w-24 bg-white border-t md:border-t-0 md:border-r border-gray-100 flex flex-row md:flex-col items-center justify-around md:justify-start py-2 md:py-8 gap-0 md:gap-8 z-50 flex-shrink-0">
       {/* Logo */}
-      <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center font-black text-2xl mb-4">
+      <div className="hidden md:flex w-12 h-12 bg-orange-100 text-orange-600 rounded-full items-center justify-center font-black text-2xl mb-4">
         C
       </div>
 
       {/* Navigasi */}
-      <nav className="flex flex-col gap-6 w-full px-4 text-xs font-semibold text-gray-400">
+      <nav className="flex flex-row md:flex-col w-full md:px-4 text-[10px] md:text-xs font-semibold text-gray-400 justify-evenly md:justify-start gap-0 md:gap-6">
         {navItems.map((item) => {
           const isActive = pathname === item.href || item.activePaths.some(p => pathname.startsWith(p));
           
           return (
             <Link key={item.name} href={item.href} className={`flex flex-col items-center gap-1 group transition ${isActive ? 'text-orange-500' : 'hover:text-gray-800'}`}>
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition ${isActive ? 'bg-orange-50 group-hover:bg-orange-100' : 'group-hover:bg-gray-50'}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center transition ${isActive ? 'bg-orange-50 group-hover:bg-orange-100' : 'group-hover:bg-gray-50'}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   {item.icon}
                 </svg>
               </div>
-              {item.name}
+              <span>{item.name}</span>
             </Link>
           );
         })}
       </nav>
 
       {/* Spacer */}
-      <div className="flex-1"></div>
+      <div className="hidden md:block flex-1"></div>
 
       {/* Profile Placeholder */}
-      <div className="w-10 h-10 bg-gray-200 rounded-full border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
+      <div className="hidden md:flex w-10 h-10 bg-gray-200 rounded-full border-2 border-white shadow-sm items-center justify-center overflow-hidden">
         <span className="text-xl">👨‍🍳</span>
       </div>
     </aside>

@@ -16,6 +16,7 @@ export default function KasirPage() {
 
   // Modal States
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'Tunai' | 'QRIS/Card'>('Tunai');
   const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
 
@@ -87,12 +88,12 @@ async function loadProducts() {
   };
 
   return (
-    <div className="flex w-full h-full">
+    <div className="flex w-full h-full relative">
       
       {/* KIRI: Area Menu Utama */}
-      <div className="flex-1 flex flex-col p-8 overflow-y-auto">
-        <div className="flex justify-between items-center mb-8">
-          <form onSubmit={handleBarcodeSubmit} className="relative w-96">
+      <div className="flex-1 flex flex-col p-4 md:p-8 overflow-y-auto pb-24 md:pb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
+          <form onSubmit={handleBarcodeSubmit} className="relative w-full md:w-96">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 absolute left-4 top-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             <input 
               type="text" 
@@ -175,17 +176,30 @@ async function loadProducts() {
         </div>
       </div>
 
+      {/* TOMBOL CART MOBILE */}
+      <div className="md:hidden fixed bottom-20 right-4 z-30">
+        <button onClick={() => setIsMobileCartOpen(true)} className="bg-orange-500 hover:bg-orange-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center relative transition">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+          {cart.length > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">{cart.reduce((a,b)=>a+b.quantity, 0)}</span>}
+        </button>
+      </div>
+
       {/* KANAN: Panel Keranjang */}
-      <div className="w-96 bg-white border-l border-gray-100 flex flex-col shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.02)] z-10 rounded-tr-[40px] rounded-br-[40px]">
-        <div className="p-8 pb-4">
-          <div className="flex justify-between items-start border-b border-gray-100 pb-6">
+      <div className={`fixed inset-0 z-40 bg-white flex-col md:static md:w-96 md:bg-white md:border-l md:border-gray-100 md:flex shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.02)] md:rounded-tr-[40px] md:rounded-br-[40px] ${isMobileCartOpen ? 'flex' : 'hidden md:flex'}`}>
+        <div className="p-6 md:p-8 pb-4">
+          <div className="flex justify-between items-start border-b border-gray-100 pb-4 md:pb-6">
             <div>
               <p className="text-sm text-gray-500 font-medium mb-1">Transaksi Aktif</p>
-              <h2 className="text-2xl font-black text-gray-800">#{Math.floor(100000 + Math.random() * 900000)}</h2>
+              <h2 className="text-xl md:text-2xl font-black text-gray-800">#{Math.floor(100000 + Math.random() * 900000)}</h2>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500 font-medium mb-1">Status</p>
-              <h2 className="text-xl font-bold text-green-500">Kasir</h2>
+            <div className="text-right flex gap-4 items-center">
+              <div className="hidden md:block">
+                <p className="text-sm text-gray-500 font-medium mb-1">Status</p>
+                <h2 className="text-xl font-bold text-green-500">Kasir</h2>
+              </div>
+              <button className="md:hidden p-2 bg-gray-100 rounded-full text-gray-500" onClick={() => setIsMobileCartOpen(false)}>
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
             </div>
           </div>
         </div>

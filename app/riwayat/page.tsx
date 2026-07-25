@@ -48,10 +48,10 @@ export default function RiwayatPage() {
   }, [filterDate]);
 
   return (
-    <div className="flex w-full h-full p-8 overflow-y-auto">
+    <div className="flex w-full h-full p-4 md:p-8 overflow-y-auto pb-24 md:pb-8">
       <div className="flex flex-col w-full max-w-5xl mx-auto space-y-8">
         
-        <div className="flex justify-between items-end">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
             <Link href="/laporan">
               <button className="text-gray-400 hover:text-orange-500 font-bold text-sm mb-4 transition">&larr; Kembali ke Dashboard</button>
@@ -78,7 +78,7 @@ export default function RiwayatPage() {
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 overflow-x-auto">
+        <div className="bg-white p-4 md:p-8 rounded-2xl md:rounded-[32px] shadow-sm border border-gray-100 overflow-x-auto">
           {loading ? (
             <div className="text-center py-8 text-gray-400 font-medium">Memuat data transaksi...</div>
           ) : (

@@ -71,7 +71,7 @@ async function loadData() {
   };
 
   return (
-    <div className="flex w-full h-full p-8 overflow-y-auto">
+    <div className="flex w-full h-full p-4 md:p-8 overflow-y-auto pb-24 md:pb-8">
       <div className="flex flex-col w-full max-w-7xl mx-auto">
         
         <div className="mb-8">
@@ -82,7 +82,7 @@ async function loadData() {
         <div className="flex gap-8 flex-col xl:flex-row">
           
           {/* FORM TAMBAH PEMBELIAN */}
-          <div className="w-full xl:w-1/3 bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 h-fit">
+          <div className="w-full xl:w-1/3 bg-white p-6 md:p-8 rounded-2xl md:rounded-[32px] shadow-sm border border-gray-100 h-fit">
             <h2 className="text-xl font-bold mb-6 text-gray-800">Catat Belanja</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="relative">
@@ -157,7 +157,7 @@ async function loadData() {
           </div>
 
           {/* TABEL RIWAYAT KULAKAN */}
-          <div className="w-full xl:w-2/3 bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 overflow-x-auto">
+          <div className="w-full xl:w-2/3 bg-white p-4 md:p-8 rounded-2xl md:rounded-[32px] shadow-sm border border-gray-100 overflow-x-auto">
             <h2 className="text-xl font-bold mb-6 text-gray-800">Riwayat Belanja Terakhir</h2>
             
             <table className="w-full text-left border-collapse">

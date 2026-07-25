@@ -91,12 +91,12 @@ function ProdukContent() {
   });
 
   return (
-    <div className="flex w-full h-full p-8 overflow-y-auto">
+    <div className="flex w-full h-full p-4 md:p-8 overflow-y-auto pb-24 md:pb-8">
       <div className="flex flex-col w-full max-w-7xl mx-auto">
         
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-black text-gray-800">📦 Master Produk</h1>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-800">📦 Master Produk</h1>
             <p className="text-gray-500 font-medium mt-1">Kelola inventaris dan pantau stok warung Anda</p>
           </div>
           <div className="flex gap-4">
@@ -173,12 +173,12 @@ function ProdukContent() {
           )}
 
           {/* Tabel Data Master */}
-          <div className="w-full bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 overflow-x-auto flex flex-col mt-4">
-            <div className="flex justify-between items-center mb-6">
+          <div className="w-full bg-white p-4 md:p-8 rounded-2xl md:rounded-[32px] shadow-sm border border-gray-100 overflow-x-auto flex flex-col mt-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
               <h2 className="text-xl font-bold text-gray-800">Daftar & Status Restock</h2>
               
               {/* Filter UI */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
                 <input 
                   type="text"
                   placeholder="Cari produk..."
