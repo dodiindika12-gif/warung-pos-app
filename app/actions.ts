@@ -198,6 +198,49 @@ export async function getTransactionHistory(dateStr?: string) {
   return JSON.parse(JSON.stringify(rows));
 }
 
+export async function getTransactionDetails(transactionId: number) {
+  const { rows } = await turso.execute({
+    sql: `
+      SELECT ti.quantity, ti.price, p.name 
+      FROM transaction_items ti 
+      JOIN products p ON ti.product_id = p.id 
+      WHERE ti.transaction_id = ?
+    `,
+    args: [transactionId]
+  });
+  return JSON.parse(JSON.stringify(rows));
+}
+
+export async function refundTransaction(transactionId: number) {
+  // 1. Get all items to restore stock
+  const { rows: items } = await turso.execute({
+    sql: 'SELECT product_id, quantity FROM transaction_items WHERE transaction_id = ?',
+    args: [transactionId]
+  });
+
+  // 2. Restore stock for each item
+  for (const item of items) {
+    await turso.execute({
+      sql: 'UPDATE products SET stock = stock + ? WHERE id = ?',
+      args: [item.quantity, item.product_id]
+    });
+  }
+
+  // 3. Delete transaction items
+  await turso.execute({
+    sql: 'DELETE FROM transaction_items WHERE transaction_id = ?',
+    args: [transactionId]
+  });
+
+  // 4. Delete the main transaction
+  await turso.execute({
+    sql: 'DELETE FROM transactions WHERE id = ?',
+    args: [transactionId]
+  });
+
+  return { success: true };
+}
+
 export async function getDailySales() {
   const { rows } = await turso.execute(`
     WITH DailyCOGS AS (

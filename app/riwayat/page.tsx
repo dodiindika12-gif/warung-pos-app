@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getTransactionHistory } from '../actions';
+import { getTransactionHistory, getTransactionDetails, refundTransaction } from '../actions';
 
 export default function RiwayatPage() {
   const [history, setHistory] = useState<any[]>([]);
@@ -11,6 +11,31 @@ export default function RiwayatPage() {
   // Format YYYY-MM-DD for input date
   const todayStr = new Date().toISOString().split('T')[0];
   const [filterDate, setFilterDate] = useState(todayStr);
+
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [transactionDetails, setTransactionDetails] = useState<any[]>([]);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+
+  const handleRowClick = async (trx: any) => {
+    setSelectedTransaction(trx);
+    setLoadingDetails(true);
+    const details = await getTransactionDetails(trx.id);
+    setTransactionDetails(details);
+    setLoadingDetails(false);
+  };
+
+  const handleRefund = async () => {
+    if (!selectedTransaction) return;
+    if (window.confirm('Apakah Anda yakin ingin membatalkan transaksi ini? Stok barang akan dikembalikan.')) {
+      setLoading(true);
+      await refundTransaction(selectedTransaction.id);
+      setSelectedTransaction(null);
+      const data = await getTransactionHistory(filterDate || undefined);
+      setHistory(data);
+      setLoading(false);
+      alert('Transaksi berhasil dibatalkan dan stok telah dikembalikan.');
+    }
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -74,7 +99,7 @@ export default function RiwayatPage() {
                   </tr>
                 ) : (
                   history.map((h: any) => (
-                    <tr key={h.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                    <tr key={h.id} onClick={() => handleRowClick(h)} className="border-b border-gray-50 hover:bg-orange-50/50 cursor-pointer transition">
                       <td className="py-4 text-sm font-medium text-gray-500">
                         {new Date(h.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} <br/>
                         <span className="text-gray-400 text-xs font-bold">{new Date(h.created_at).toLocaleTimeString('id-ID')}</span>
@@ -96,6 +121,66 @@ export default function RiwayatPage() {
         </div>
 
       </div>
+
+      {selectedTransaction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white text-gray-800 rounded-[32px] w-full max-w-[500px] shadow-2xl flex flex-col overflow-hidden border border-gray-100">
+            <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">Detail Transaksi</h2>
+                <p className="text-sm text-gray-500 font-medium">Trx #{selectedTransaction.id}</p>
+              </div>
+              <button onClick={() => setSelectedTransaction(null)} className="text-gray-400 hover:text-gray-600 transition bg-white hover:bg-gray-100 p-2 rounded-full border border-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="p-6 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
+              <div className="flex justify-between text-sm mb-2 border-b border-gray-100 pb-2">
+                <span className="text-gray-500 font-medium">Waktu Transaksi:</span>
+                <span className="font-bold text-gray-800">{new Date(selectedTransaction.created_at).toLocaleString('id-ID')}</span>
+              </div>
+              <div className="flex justify-between text-sm mb-4 border-b border-gray-100 pb-2">
+                <span className="text-gray-500 font-medium">Metode Pembayaran:</span>
+                <span className={`px-3 py-1 rounded-lg text-xs font-bold ${selectedTransaction.payment_method === 'QRIS' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}`}>
+                  {selectedTransaction.payment_method}
+                </span>
+              </div>
+              
+              <h3 className="font-bold text-gray-800 border-b border-gray-100 pb-2 mb-2">Produk yang Dibeli</h3>
+              {loadingDetails ? (
+                <div className="text-center py-4 text-gray-400 font-medium text-sm">Memuat detail...</div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {transactionDetails.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                      <div>
+                        <p className="font-bold text-gray-800 text-sm mb-1">{item.name}</p>
+                        <p className="text-xs text-gray-500 font-bold">{item.quantity} x Rp {item.price.toLocaleString('id-ID')}</p>
+                      </div>
+                      <p className="font-black text-gray-800 text-sm">Rp {(item.quantity * item.price).toLocaleString('id-ID')}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="bg-orange-50 p-6 flex flex-col gap-4 border-t border-orange-100">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 font-bold">Total Pembayaran</span>
+                <span className="text-orange-500 font-black text-2xl">Rp {selectedTransaction.total_amount.toLocaleString('id-ID')}</span>
+              </div>
+              <button 
+                onClick={handleRefund}
+                className="w-full bg-red-50 hover:bg-red-100 text-red-500 font-bold py-4 rounded-[20px] transition border border-red-200"
+              >
+                Batalkan Transaksi (Refund)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
