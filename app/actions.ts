@@ -7,7 +7,7 @@ import { turso } from './db';
 // ==========================================
 export async function getProducts() {
   const { rows } = await turso.execute('SELECT * FROM products ORDER BY name ASC');
-  return rows;
+  return JSON.parse(JSON.stringify(rows));
 }
 
 // UPDATE BARCODE: Menambahkan parameter barcode ke dalam insert database
@@ -15,6 +15,14 @@ export async function addProduct(data: { name: string; barcode: string; category
   await turso.execute({
     sql: 'INSERT INTO products (name, barcode, category, cost_price, selling_price, stock) VALUES (?, ?, ?, ?, ?, ?)',
     args: [data.name, data.barcode, data.category, data.cost_price, data.selling_price, data.stock]
+  });
+  return { success: true };
+}
+
+export async function updateProduct(id: number, data: { name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number }) {
+  await turso.execute({
+    sql: 'UPDATE products SET name = ?, barcode = ?, category = ?, cost_price = ?, selling_price = ?, stock = ? WHERE id = ?',
+    args: [data.name, data.barcode, data.category, data.cost_price, data.selling_price, data.stock, id]
   });
   return { success: true };
 }
@@ -38,7 +46,7 @@ export async function getProductsWithRecommendation() {
     GROUP BY p.id
     ORDER BY p.name ASC
   `);
-  return rows;
+  return JSON.parse(JSON.stringify(rows));
 }
 
 // ==========================================
@@ -86,7 +94,7 @@ export async function getRecentPurchases() {
     ORDER BY p.created_at DESC
     LIMIT 10
   `);
-  return rows;
+  return JSON.parse(JSON.stringify(rows));
 }
 
 export async function addPurchase(productId: number, quantity: number, costPrice: number) {
@@ -117,7 +125,8 @@ export async function getDashboardStats() {
   const stats = await turso.execute(`
     SELECT SUM(total_amount) as total_revenue,
     SUM(CASE WHEN payment_method = 'Tunai' THEN total_amount ELSE 0 END) as total_tunai,
-    SUM(CASE WHEN payment_method = 'QRIS' THEN total_amount ELSE 0 END) as total_qris
+    SUM(CASE WHEN payment_method = 'QRIS' THEN total_amount ELSE 0 END) as total_qris,
+    COUNT(id) as total_trx
     FROM transactions WHERE date(created_at) = date('now')
   `);
 
@@ -137,23 +146,33 @@ export async function getDashboardStats() {
     SELECT p.name, SUM(ti.quantity) as total_sold
     FROM transaction_items ti
     JOIN products p ON ti.product_id = p.id
-    GROUP BY p.id ORDER BY total_sold DESC LIMIT 5
+    JOIN transactions t ON ti.transaction_id = t.id
+    WHERE date(t.created_at) = date('now')
+    GROUP BY p.id ORDER BY total_sold DESC LIMIT 10
+  `);
+
+  const lowStock = await turso.execute(`
+    SELECT name, stock, barcode FROM products WHERE stock <= 5 ORDER BY stock ASC LIMIT 10
   `);
 
   return {
     revenue: Number(stats.rows[0]?.total_revenue || 0),
     tunai: Number(stats.rows[0]?.total_tunai || 0),
     qris: Number(stats.rows[0]?.total_qris || 0),
+    totalTrx: Number(stats.rows[0]?.total_trx || 0),
     expense: Number(expenses.rows[0]?.total_expense || 0),
     cogs: Number(cogs.rows[0]?.total_cogs || 0),
     bestSellers: bestSellers.rows.map(row => ({
       name: row.name, total_sold: Number(row.total_sold)
+    })),
+    lowStock: lowStock.rows.map(row => ({
+      name: row.name, stock: Number(row.stock), barcode: row.barcode
     }))
   };
 }
 
-export async function getTransactionHistory() {
-  const { rows } = await turso.execute(`
+export async function getTransactionHistory(dateStr?: string) {
+  let query = `
     WITH TrxCOGS AS (
         SELECT ti.transaction_id, SUM(ti.quantity * p.cost_price) as cogs
         FROM transaction_items ti
@@ -165,9 +184,18 @@ export async function getTransactionHistory() {
         (t.total_amount - COALESCE(tc.cogs, 0)) as profit
     FROM transactions t
     LEFT JOIN TrxCOGS tc ON t.id = tc.transaction_id
-    ORDER BY t.created_at DESC LIMIT 100
-  `);
-  return rows;
+  `;
+  
+  let args: any[] = [];
+  if (dateStr) {
+    query += ` WHERE date(t.created_at) = ? `;
+    args.push(dateStr);
+  }
+  
+  query += ` ORDER BY t.created_at DESC LIMIT 500 `;
+  
+  const { rows } = await turso.execute({ sql: query, args });
+  return JSON.parse(JSON.stringify(rows));
 }
 
 export async function getDailySales() {
@@ -189,7 +217,7 @@ export async function getDailySales() {
     GROUP BY date(t.created_at)
     ORDER BY date DESC LIMIT 30
   `);
-  return rows;
+  return JSON.parse(JSON.stringify(rows));
 }
 
 export async function getMonthlySales() {
@@ -211,5 +239,5 @@ export async function getMonthlySales() {
     GROUP BY strftime('%Y-%m', t.created_at)
     ORDER BY month DESC
   `);
-  return rows;
+  return JSON.parse(JSON.stringify(rows));
 }

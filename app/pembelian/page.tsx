@@ -3,13 +3,16 @@
 import { useState, useEffect } from 'react';
 import { getProducts, getRecentPurchases, addPurchase } from '../actions';
 
-type Product = { id: number; name: string; stock: number; cost_price: number };
+type Product = { id: number; name: string; stock: number; cost_price: number; barcode: string };
 type Purchase = { id: number; product_name: string; quantity: number; cost_price: number; total_cost: number; created_at: string };
 
 export default function PembelianPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
   
   const [formData, setFormData] = useState({ productId: '', quantity: '', costPrice: '' });
 
@@ -34,6 +37,24 @@ async function loadData() {
       productId: id, 
       costPrice: prod ? prod.cost_price.toString() : '' 
     });
+    setSearchQuery('');
+    setShowDropdown(false);
+  };
+
+  const handleSearchEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!searchQuery.trim()) return;
+      const matched = products.find(p => p.barcode === searchQuery.trim());
+      if (matched) {
+        handleProductSelect(matched.id.toString());
+      } else {
+        const partialMatches = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || (p.barcode && p.barcode.includes(searchQuery)));
+        if (partialMatches.length === 1) {
+          handleProductSelect(partialMatches[0].id.toString());
+        }
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,19 +85,46 @@ async function loadData() {
           <div className="w-full xl:w-1/3 bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 h-fit">
             <h2 className="text-xl font-bold mb-6 text-gray-800">Catat Belanja</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Pilih Barang</label>
-                <select 
-                  required 
-                  value={formData.productId} 
-                  onChange={e => handleProductSelect(e.target.value)} 
-                  className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition appearance-none"
-                >
-                  <option value="">-- Pilih Barang --</option>
-                  {products.map(p => (
-                    <option key={p.id} value={p.id}>{p.name} (Stok: {p.stock})</option>
-                  ))}
-                </select>
+              <div className="relative">
+                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Cari Barang (Nama / Barcode)</label>
+                {!formData.productId ? (
+                  <>
+                    <input 
+                      type="text" 
+                      value={searchQuery} 
+                      onChange={e => { setSearchQuery(e.target.value); setShowDropdown(true); }} 
+                      onKeyDown={handleSearchEnter}
+                      onFocus={() => setShowDropdown(true)}
+                      onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                      placeholder="Scan barcode atau ketik nama..." 
+                      className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition"
+                    />
+                    {showDropdown && searchQuery && (
+                      <div className="absolute z-20 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl max-h-60 overflow-y-auto">
+                        {products
+                          .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || (p.barcode && p.barcode.includes(searchQuery)))
+                          .map(p => (
+                            <div 
+                              key={p.id} 
+                              onClick={() => handleProductSelect(p.id.toString())}
+                              className="p-4 hover:bg-orange-50 cursor-pointer border-b border-gray-50 last:border-0 transition"
+                            >
+                              <div className="font-bold text-gray-800 text-sm">{p.name}</div>
+                              <div className="text-xs text-gray-400 mt-1">Barcode: {p.barcode || '-'} | Stok: {p.stock}</div>
+                            </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex items-center justify-between w-full bg-orange-50 border border-orange-200 rounded-2xl p-4">
+                    <div>
+                      <div className="text-sm font-bold text-orange-700">{products.find(p => p.id.toString() === formData.productId)?.name}</div>
+                      <div className="text-xs text-orange-500 mt-1">Stok saat ini: {products.find(p => p.id.toString() === formData.productId)?.stock}</div>
+                    </div>
+                    <button type="button" onClick={() => { setFormData({...formData, productId: '', costPrice: ''}); setSearchQuery(''); }} className="text-orange-500 hover:text-red-500 font-bold px-3 py-1 bg-white rounded-lg shadow-sm text-xs transition">Ganti</button>
+                  </div>
+                )}
               </div>
 
               <div>
