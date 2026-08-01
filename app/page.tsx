@@ -67,10 +67,10 @@ async function loadProducts() {
     setCart(prev => prev.map(item => {
       if (item.id === id) {
         const newQ = item.quantity + delta;
-        return newQ > 0 && newQ <= item.stock ? { ...item, quantity: newQ } : item;
+        return { ...item, quantity: Math.min(newQ, item.stock) };
       }
       return item;
-    }));
+    }).filter(item => item.quantity > 0));
   };
 
   const totalAmount = cart.reduce((sum, item) => sum + (item.selling_price * item.quantity), 0);
