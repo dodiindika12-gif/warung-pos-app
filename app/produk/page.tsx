@@ -181,6 +181,48 @@ function ProdukContent() {
       case 'profit_asc': return (a.selling_price - a.cost_price) - (b.selling_price - b.cost_price);
       case 'margin_desc': return (b.cost_price > 0 ? (b.selling_price - b.cost_price) / b.cost_price : 0) - (a.cost_price > 0 ? (a.selling_price - a.cost_price) / a.cost_price : 0);
       case 'margin_asc': return (a.cost_price > 0 ? (a.selling_price - a.cost_price) / a.cost_price : 0) - (b.cost_price > 0 ? (b.selling_price - b.cost_price) / b.cost_price : 0);
+      case 'dsi_asc': {
+        const dsiA = a.sold_last_7_days > 0 ? Math.round(a.stock / (a.sold_last_7_days / 7)) : 999999;
+        const dsiB = b.sold_last_7_days > 0 ? Math.round(b.stock / (b.sold_last_7_days / 7)) : 999999;
+        return dsiA - dsiB;
+      }
+      case 'dsi_desc': {
+        const dsiA = a.sold_last_7_days > 0 ? Math.round(a.stock / (a.sold_last_7_days / 7)) : 999999;
+        const dsiB = b.sold_last_7_days > 0 ? Math.round(b.stock / (b.sold_last_7_days / 7)) : 999999;
+        return dsiB - dsiA;
+      }
+      case 'sales_desc': return (b.sold_last_7_days || 0) - (a.sold_last_7_days || 0);
+      case 'sales_asc': return (a.sold_last_7_days || 0) - (b.sold_last_7_days || 0);
+      case 'status_asc': {
+        const getRank = (p: any) => {
+          const dsi = (p.sold_last_7_days || 0) > 0 ? Math.round(p.stock / (p.sold_last_7_days / 7)) : -1;
+          const createdDate = p.created_at ? new Date(p.created_at) : new Date();
+          const daysSinceCreated = (new Date().getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
+          const isNewProduct = daysSinceCreated <= 14;
+
+          if (p.stock === 0) return 0;
+          if (dsi !== -1 && dsi <= 7) return 1;
+          if ((dsi === -1 || dsi > 30) && p.stock > 10) return 2;
+          if (dsi === -1 && isNewProduct) return 3;
+          return 4;
+        };
+        return getRank(a) - getRank(b);
+      }
+      case 'status_desc': {
+        const getRank = (p: any) => {
+          const dsi = (p.sold_last_7_days || 0) > 0 ? Math.round(p.stock / (p.sold_last_7_days / 7)) : -1;
+          const createdDate = p.created_at ? new Date(p.created_at) : new Date();
+          const daysSinceCreated = (new Date().getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
+          const isNewProduct = daysSinceCreated <= 14;
+
+          if (p.stock === 0) return 0;
+          if (dsi !== -1 && dsi <= 7) return 1;
+          if ((dsi === -1 || dsi > 30) && p.stock > 10) return 2;
+          if (dsi === -1 && isNewProduct) return 3;
+          return 4;
+        };
+        return getRank(b) - getRank(a);
+      }
       default: return 0;
     }
   });
@@ -367,6 +409,13 @@ function ProdukContent() {
                   <option value="profit_asc">Laba Terendah (Rp)</option>
                   <option value="margin_desc">Margin Tertinggi (%)</option>
                   <option value="margin_asc">Margin Terendah (%)</option>
+                  <option disabled>--- Analisis Stok ---</option>
+                  <option value="sales_desc">Paling Laku (Penjualan/Mgg)</option>
+                  <option value="sales_asc">Kurang Laku (Penjualan/Mgg)</option>
+                  <option value="dsi_asc">DSI Tercepat (Cepat Habis)</option>
+                  <option value="dsi_desc">DSI Terlama (Slow Moving)</option>
+                  <option value="status_asc">Prioritas Status (Habis/Kritis Dulu)</option>
+                  <option value="status_desc">Status (Aman Dulu)</option>
                 </select>
                 <div className="relative w-full md:w-auto flex-1">
                   <input 
@@ -389,18 +438,16 @@ function ProdukContent() {
               <thead>
                 <tr className="border-b-2 border-gray-100 text-xs uppercase tracking-wider text-gray-400">
                   <th className="pb-4 font-bold">Produk</th>
-                  <th className="pb-4 font-bold">Harga</th>
-                  <th className="pb-4 font-bold">Laba / Pcs</th>
-                  <th className="pb-4 text-center font-bold">Stok</th>
-                  <th className="pb-4 text-center font-bold">Status</th>
-                  <th className="pb-4 text-center font-bold">Saran Kulakan</th>
+                  <th className="pb-4 font-bold">Harga Beli</th>
+                  <th className="pb-4 font-bold">Harga Jual</th>
+                  <th className="pb-4 font-bold">Stok & Status</th>
                   <th className="pb-4 text-center font-bold">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-gray-400 font-medium">Tidak ada produk ditemukan.</td>
+                    <td colSpan={5} className="py-8 text-center text-gray-400 font-medium">Tidak ada produk ditemukan.</td>
                   </tr>
                 ) : (
                   filteredProducts.map((p) => {
@@ -408,21 +455,35 @@ function ProdukContent() {
                     const marginPersen = ((marginRp / p.cost_price) * 100).toFixed(1);
                     
                     const terjualMingguIni = p.sold_last_7_days;
-                    const estimasiKebutuhan = terjualMingguIni > 0 ? terjualMingguIni : 5; 
-                    const bufferStok = estimasiKebutuhan; 
-                    const targetStokIdeal = estimasiKebutuhan + bufferStok;
-                    
-                    let saranRestock = targetStokIdeal - p.stock;
-                    if (saranRestock < 0) saranRestock = 0; 
+                    const avgDailySales = terjualMingguIni / 7;
+                    const dsi = avgDailySales > 0 ? Math.round(p.stock / avgDailySales) : -1;
+                    const createdDate = p.created_at ? new Date(p.created_at) : new Date();
+                    const daysSinceCreated = (new Date().getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
+                    const isNewProduct = daysSinceCreated <= 14;
+
+                    let dsiDisplay: React.ReactNode;
+                    if (avgDailySales > 0) {
+                      dsiDisplay = `${dsi}d`;
+                    } else if (p.stock > 0) {
+                      if (isNewProduct) {
+                        dsiDisplay = <span className="text-blue-500 font-black text-[10px] leading-none tracking-tighter">NEW</span>;
+                      } else {
+                        dsiDisplay = <span className="text-red-500 font-black text-sm">∞</span>;
+                      }
+                    } else {
+                      dsiDisplay = "-";
+                    }
 
                     let status = '';
                     let statusColor = '';
 
                     if (p.stock === 0) {
                       status = 'Habis'; statusColor = 'bg-red-50 text-red-600 border border-red-200';
-                    } else if (p.stock <= bufferStok) {
+                    } else if (dsi === -1 && isNewProduct) {
+                      status = 'Baru'; statusColor = 'bg-blue-50 text-blue-600 border border-blue-200';
+                    } else if (dsi !== -1 && dsi <= 7) {
                       status = 'Kritis'; statusColor = 'bg-red-50 text-red-600 border border-red-200';
-                    } else if (p.stock > (targetStokIdeal * 1.5) && p.stock > 10) {
+                    } else if ((dsi === -1 || dsi > 30) && p.stock > 10) {
                       status = 'Overstock'; statusColor = 'bg-yellow-50 text-yellow-600 border border-yellow-200';
                     } else {
                       status = 'Aman'; statusColor = 'bg-green-50 text-green-600 border border-green-200';
@@ -437,34 +498,25 @@ function ProdukContent() {
                           </div>
                         </td>
                         <td className="py-4">
-                          <div className="text-gray-500 font-medium text-xs">
-                            <span className="text-green-600">Beli:</span> Rp {p.cost_price.toLocaleString('id-ID')} <br/>
-                            <span className="text-green-600 font-bold">Jual: Rp {p.selling_price.toLocaleString('id-ID')}</span>
-                          </div>
+                          <div className="font-bold text-gray-800 text-sm">Rp {p.cost_price.toLocaleString('id-ID')}</div>
+                          <div className="text-xs text-green-600 font-medium mt-1">Laba: Rp {marginRp.toLocaleString('id-ID')}</div>
                         </td>
                         <td className="py-4">
-                          <div className="text-green-600 font-bold text-sm">Rp {marginRp.toLocaleString('id-ID')}</div>
-                          <div className="text-xs text-gray-400 font-medium mt-1">{marginPersen}%</div>
+                          <div className="font-bold text-gray-800 text-sm">Rp {p.selling_price.toLocaleString('id-ID')}</div>
+                          <div className="text-xs text-green-600 font-medium mt-1">Margin: {marginPersen}%</div>
                         </td>
-                        <td className="py-4 text-center">
-                          <span className="font-black text-gray-800 text-lg">{p.stock}</span>
-                        </td>
-                        <td className="py-4 text-center">
-                          <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${statusColor}`}>
-                            {status}
-                          </span>
-                        </td>
-                        <td className="py-4 text-center">
-                          {saranRestock > 0 ? (
-                            <div className="flex flex-col items-center">
-                              <span className="text-primary font-bold bg-primary/10 px-3 py-1.5 rounded-full text-xs shadow-sm">
-                                Beli {saranRestock}
+                        <td className="py-4">
+                          <div className="flex flex-col items-start">
+                            <div className="flex items-center gap-2">
+                              <span className="font-black text-gray-800 text-lg">{p.stock}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight ${statusColor}`}>
+                                {status}
                               </span>
-                              <span className="text-[10px] text-gray-400 font-medium mt-1.5">Laku {terjualMingguIni}/mgg</span>
                             </div>
-                          ) : (
-                            <span className="text-gray-300 font-bold text-xs">-</span>
-                          )}
+                            <span className="text-[10px] text-primary font-bold mt-1 bg-primary/10 px-2 py-0.5 rounded-md">
+                              Sell {terjualMingguIni}/w | DSI {dsiDisplay}
+                            </span>
+                          </div>
                         </td>
                         <td className="py-4 text-center">
                           <div className="flex justify-center gap-2">

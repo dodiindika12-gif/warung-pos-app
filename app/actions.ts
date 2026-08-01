@@ -405,6 +405,11 @@ export async function refundTransaction(transactionId: number) {
       sql: 'UPDATE products SET stock = stock + ? WHERE id = ?',
       args: [item.quantity, item.product_id]
     });
+
+    await turso.execute({
+      sql: 'INSERT INTO stock_history (product_id, change_amount, reason, reference_id) VALUES (?, ?, ?, ?)',
+      args: [item.product_id, item.quantity, 'Retur Penjualan', transactionId]
+    });
   }
 
   // 3. Delete transaction items
