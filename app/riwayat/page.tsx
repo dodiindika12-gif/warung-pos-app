@@ -54,7 +54,7 @@ export default function RiwayatPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
             <Link href="/laporan">
-              <button className="text-gray-400 hover:text-green-500 font-bold text-sm mb-4 transition">&larr; Kembali ke Dashboard</button>
+              <button className="text-gray-400 hover:text-primary font-bold text-sm mb-4 transition">&larr; Kembali ke Dashboard</button>
             </Link>
             <h1 className="text-3xl font-black text-gray-800">🧾 Riwayat Transaksi</h1>
             <p className="text-gray-500 font-medium mt-1">Daftar seluruh transaksi yang pernah terjadi</p>
@@ -67,7 +67,7 @@ export default function RiwayatPage() {
                 type="date" 
                 value={filterDate}
                 onChange={e => setFilterDate(e.target.value)}
-                className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-green-500 transition shadow-sm"
+                className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-primary transition shadow-sm"
               />
               {filterDate && (
                 <button onClick={() => setFilterDate('')} className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold px-4 py-2 rounded-xl text-sm transition">
@@ -99,14 +99,14 @@ export default function RiwayatPage() {
                   </tr>
                 ) : (
                   history.map((h: any) => (
-                    <tr key={h.id} onClick={() => handleRowClick(h)} className="border-b border-gray-50 hover:bg-green-50/50 cursor-pointer transition">
+                    <tr key={h.id} onClick={() => handleRowClick(h)} className="border-b border-gray-50 hover:bg-primary/10/50 cursor-pointer transition">
                       <td className="py-4 text-sm font-medium text-gray-500">
                         {new Date(h.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} <br/>
                         <span className="text-gray-400 text-xs font-bold">{new Date(h.created_at).toLocaleTimeString('id-ID')}</span>
                       </td>
                       <td className="py-4 font-bold text-gray-800 text-sm">Trx #{h.id}</td>
                       <td className="py-4 text-center">
-                        <span className={`px-3 py-1 rounded-lg text-xs font-bold ${h.payment_method === 'QRIS' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}`}>
+                        <span className={`px-3 py-1 rounded-lg text-xs font-bold ${h.payment_method === 'QRIS' ? 'bg-blue-50 text-blue-600' : 'bg-primary/10 text-primary'}`}>
                           {h.payment_method}
                         </span>
                       </td>
@@ -138,11 +138,11 @@ export default function RiwayatPage() {
             <div className="p-6 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
               <div className="flex justify-between text-sm mb-2 border-b border-gray-100 pb-2">
                 <span className="text-gray-500 font-medium">Waktu Transaksi:</span>
-                <span className="font-bold text-gray-800">{new Date(selectedTransaction.created_at).toLocaleString('id-ID')}</span>
+                <span className="font-bold text-green-600">{new Date(selectedTransaction.created_at).toLocaleString('id-ID')}</span>
               </div>
               <div className="flex justify-between text-sm mb-4 border-b border-gray-100 pb-2">
                 <span className="text-gray-500 font-medium">Metode Pembayaran:</span>
-                <span className={`px-3 py-1 rounded-lg text-xs font-bold ${selectedTransaction.payment_method === 'QRIS' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}`}>
+                <span className={`px-3 py-1 rounded-lg text-xs font-bold ${selectedTransaction.payment_method === 'QRIS' ? 'bg-blue-50 text-blue-600' : 'bg-primary/10 text-primary'}`}>
                   {selectedTransaction.payment_method}
                 </span>
               </div>
@@ -156,19 +156,19 @@ export default function RiwayatPage() {
                     <div key={idx} className="flex justify-between items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
                       <div>
                         <p className="font-bold text-gray-800 text-sm mb-1">{item.name}</p>
-                        <p className="text-xs text-gray-500 font-bold">{item.quantity} x Rp {item.price.toLocaleString('id-ID')}</p>
+                        <p className="text-xs text-green-600 font-bold">{item.quantity} x Rp {item.price.toLocaleString('id-ID')}</p>
                       </div>
-                      <p className="font-black text-gray-800 text-sm">Rp {(item.quantity * item.price).toLocaleString('id-ID')}</p>
+                      <p className="font-black text-green-600 text-sm">Rp {(item.quantity * item.price).toLocaleString('id-ID')}</p>
                     </div>
                   ))}
                 </div>
               )}
             </div>
             
-            <div className="bg-green-50 p-6 flex flex-col gap-4 border-t border-green-100">
+            <div className="bg-primary/10 p-6 flex flex-col gap-4 border-t border-primary/10">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 font-bold">Total Pembayaran</span>
-                <span className="text-green-500 font-black text-2xl">Rp {selectedTransaction.total_amount.toLocaleString('id-ID')}</span>
+                <span className="text-green-600 font-black text-2xl">Rp {selectedTransaction.total_amount.toLocaleString('id-ID')}</span>
               </div>
               <button 
                 onClick={handleRefund}

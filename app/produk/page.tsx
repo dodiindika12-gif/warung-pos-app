@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation } from '../actions';
 import BarcodeScanner from '../components/BarcodeScanner';
+import { Button } from "@/components/ui/button";
 
 type Product = { id: number; name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number; sold_last_7_days: number };
 
@@ -21,6 +22,7 @@ function ProdukContent() {
 
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [filterType, setFilterType] = useState(initialFilter);
+  const [sortType, setSortType] = useState('name_asc');
 
   useEffect(() => {
     loadProducts();
@@ -84,12 +86,26 @@ function ProdukContent() {
       match = match && p.name.toLowerCase().includes(searchQuery.toLowerCase());
     }
     if (filterType === 'low_stock') {
-      // Sama dengan logika status Kritis / Habis
       const estimasiKebutuhan = p.sold_last_7_days > 0 ? p.sold_last_7_days : 5;
-      const bufferStok = estimasiKebutuhan;
-      match = match && (p.stock <= bufferStok);
+      match = match && (p.stock <= estimasiKebutuhan);
+    } else if (filterType && filterType !== 'all') {
+      match = match && p.category === filterType;
     }
     return match;
+  }).sort((a, b) => {
+    switch (sortType) {
+      case 'name_asc': return a.name.localeCompare(b.name);
+      case 'name_desc': return b.name.localeCompare(a.name);
+      case 'stock_desc': return b.stock - a.stock;
+      case 'stock_asc': return a.stock - b.stock;
+      case 'price_desc': return b.selling_price - a.selling_price;
+      case 'price_asc': return a.selling_price - b.selling_price;
+      case 'profit_desc': return (b.selling_price - b.cost_price) - (a.selling_price - a.cost_price);
+      case 'profit_asc': return (a.selling_price - a.cost_price) - (b.selling_price - b.cost_price);
+      case 'margin_desc': return (b.cost_price > 0 ? (b.selling_price - b.cost_price) / b.cost_price : 0) - (a.cost_price > 0 ? (a.selling_price - a.cost_price) / a.cost_price : 0);
+      case 'margin_asc': return (a.cost_price > 0 ? (a.selling_price - a.cost_price) / a.cost_price : 0) - (b.cost_price > 0 ? (b.selling_price - b.cost_price) / b.cost_price : 0);
+      default: return 0;
+    }
   });
 
   return (
@@ -102,22 +118,23 @@ function ProdukContent() {
             <p className="text-gray-500 font-medium mt-1">Kelola inventaris dan pantau stok warung Anda</p>
           </div>
           <div className="flex gap-4">
-            <button 
+            <Button 
+              variant="outline"
               onClick={() => alert('Fitur Stock Opname segera hadir!')} 
-              className="bg-white border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 font-bold px-6 py-3 rounded-2xl shadow-sm transition flex items-center gap-2"
+              className="font-bold px-6 py-3 rounded-2xl shadow-sm transition flex items-center gap-2"
             >
               📋 Stock Opname
-            </button>
-            <button 
+            </Button>
+            <Button 
               onClick={() => {
-                setFormData({ name: '', barcode: '', category: 'Umum', cost_price: '', selling_price: '', stock: '' });
                 setEditingProductId(null);
+                setFormData({ name: '', barcode: '', category: 'Umum', selling_price: '', cost_price: '', stock: '' });
                 setShowAddForm(true);
               }} 
-              className="bg-[#16a34a] hover:bg-[#15803d] text-white font-bold px-6 py-3 rounded-2xl shadow-[0_8px_20px_-6px_rgba(22,163,74,0.5)] transition flex items-center gap-2"
+              className="h-12 px-6 rounded-2xl text-base font-bold shadow-lg shadow-primary/30 flex items-center gap-2"
             >
               + Tambah Produk
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -139,12 +156,12 @@ function ProdukContent() {
               <form onSubmit={handleAddSubmit} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Nama Barang</label>
-                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="Cth: Kopi Kapal Api" />
+                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="Cth: Kopi Kapal Api" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Barcode (Opsional)</label>
                   <div className="flex gap-2">
-                    <input type="text" value={formData.barcode} onChange={e => setFormData({...formData, barcode: e.target.value})} className="flex-1 bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-mono text-gray-800 focus:outline-none transition" placeholder="Ketik atau scan barcode..." />
+                    <input type="text" value={formData.barcode} onChange={e => setFormData({...formData, barcode: e.target.value})} className="flex-1 bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-mono text-gray-800 focus:outline-none transition" placeholder="Ketik atau scan barcode..." />
                     <button type="button" onClick={() => setShowScanner(true)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 rounded-2xl shadow-sm transition flex items-center justify-center whitespace-nowrap">
                       📷 Scan
                     </button>
@@ -163,7 +180,7 @@ function ProdukContent() {
                        recommendedStr = rounded.toString();
                     }
                     setFormData({...formData, category: newCat, selling_price: recommendedStr});
-                  }} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition appearance-none cursor-pointer">
+                  }} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition appearance-none cursor-pointer">
                     <option value="Umum">Umum</option>
                     <option value="Sembako">Sembako</option>
                     <option value="Minuman">Minuman</option>
@@ -188,20 +205,20 @@ function ProdukContent() {
                           recommendedStr = rounded.toString();
                         }
                         setFormData({...formData, cost_price: newCost, selling_price: recommendedStr});
-                    }} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="0" />
+                    }} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="0" />
                   </div>
                   <div className="flex-1">
                     <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Harga Jual</label>
-                    <input required type="number" value={formData.selling_price} onChange={e => setFormData({...formData, selling_price: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="0" />
+                    <input required type="number" value={formData.selling_price} onChange={e => setFormData({...formData, selling_price: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="0" />
                   </div>
                 </div>
 
                 {formData.cost_price && formData.selling_price && (
-                  <div className="bg-green-50 p-4 rounded-2xl border border-green-100 flex items-center justify-between">
-                    <span className="text-sm font-bold text-green-800">Margin Penjualan:</span>
+                  <div className="bg-primary/10 p-4 rounded-2xl border border-primary/10 flex items-center justify-between">
+                    <span className="text-sm font-bold text-primary">Margin Penjualan:</span>
                     <div className="text-right">
                       <span className="text-sm font-black text-green-600 mr-2">Rp {(Number(formData.selling_price) - Number(formData.cost_price)).toLocaleString('id-ID')}</span>
-                      <span className="text-xs font-bold bg-white text-green-600 px-2 py-1 rounded-lg border border-green-200">
+                      <span className="text-xs font-bold bg-white text-primary px-2 py-1 rounded-lg border border-primary/20">
                         {Number(formData.cost_price) > 0 ? (((Number(formData.selling_price) - Number(formData.cost_price)) / Number(formData.cost_price)) * 100).toFixed(1) : 0}%
                       </span>
                     </div>
@@ -210,12 +227,12 @@ function ProdukContent() {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Stok Awal</label>
-                  <input required type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="0" />
+                  <input required type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="0" />
                 </div>
 
-                <button disabled={loading} type="submit" className="w-full bg-[#16a34a] hover:bg-[#15803d] text-white font-bold py-4 rounded-2xl shadow-[0_8px_20px_-6px_rgba(22,163,74,0.5)] transition mt-4">
+                <Button disabled={loading} type="submit" className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/30 mt-4">
                   {loading ? 'Menyimpan...' : (editingProductId ? 'Simpan Perubahan' : '+ Simpan Produk')}
-                </button>
+                </Button>
               </form>
               
               {showScanner && (
@@ -238,18 +255,53 @@ function ProdukContent() {
               
               {/* Filter UI */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-                <input 
-                  type="text"
-                  placeholder="Cari produk..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-green-500 transition"
-                />
-                {filterType === 'low_stock' && (
-                  <button onClick={() => setFilterType('')} className="bg-red-50 text-red-500 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-100 transition">
-                    Hapus Filter Stok
-                  </button>
-                )}
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary transition font-semibold text-gray-700 cursor-pointer"
+                >
+                  <option value="all">Semua Produk</option>
+                  <option value="low_stock">⚠️ Stok Menipis</option>
+                  <option disabled>--- Kategori ---</option>
+                  <option value="Umum">Umum</option>
+                  <option value="Sembako">Sembako</option>
+                  <option value="Minuman">Minuman</option>
+                  <option value="Makanan Ringan">Makanan Ringan</option>
+                  <option value="Bumbu Dapur">Bumbu Dapur</option>
+                  <option value="Kebutuhan Rumah">Kebutuhan Rumah</option>
+                  <option value="Rokok">Rokok</option>
+                </select>
+                <select
+                  value={sortType}
+                  onChange={(e) => setSortType(e.target.value)}
+                  className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary transition font-semibold text-gray-700 cursor-pointer"
+                >
+                  <option value="name_asc">A-Z (Nama)</option>
+                  <option value="name_desc">Z-A (Nama)</option>
+                  <option value="stock_desc">Stok Terbanyak</option>
+                  <option value="stock_asc">Stok Tersedikit</option>
+                  <option value="price_desc">Harga Termahal</option>
+                  <option value="price_asc">Harga Termurah</option>
+                  <option disabled>--- Analisis Laba ---</option>
+                  <option value="profit_desc">Laba Tertinggi (Rp)</option>
+                  <option value="profit_asc">Laba Terendah (Rp)</option>
+                  <option value="margin_desc">Margin Tertinggi (%)</option>
+                  <option value="margin_asc">Margin Terendah (%)</option>
+                </select>
+                <div className="relative w-full md:w-auto flex-1">
+                  <input 
+                    type="text"
+                    placeholder="Cari produk..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 pr-10 text-sm focus:outline-none focus:border-primary transition"
+                  />
+                  {searchQuery && (
+                    <button type="button" onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full w-5 h-5 flex items-center justify-center transition">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
             
@@ -287,13 +339,13 @@ function ProdukContent() {
                     let statusColor = '';
 
                     if (p.stock === 0) {
-                      status = 'Habis'; statusColor = 'bg-red-50 text-red-500 border border-red-100';
+                      status = 'Habis'; statusColor = 'bg-red-50 text-red-600 border border-red-200';
                     } else if (p.stock <= bufferStok) {
-                      status = 'Kritis'; statusColor = 'bg-green-50 text-green-600 border border-green-200';
+                      status = 'Kritis'; statusColor = 'bg-red-50 text-red-600 border border-red-200';
                     } else if (p.stock > (targetStokIdeal * 1.5) && p.stock > 10) {
-                      status = 'Overstock'; statusColor = 'bg-blue-50 text-blue-500 border border-blue-100';
+                      status = 'Overstock'; statusColor = 'bg-yellow-50 text-yellow-600 border border-yellow-200';
                     } else {
-                      status = 'Aman'; statusColor = 'bg-green-50 text-green-500 border border-green-100';
+                      status = 'Aman'; statusColor = 'bg-green-50 text-green-600 border border-green-200';
                     }
 
                     return (
@@ -306,8 +358,8 @@ function ProdukContent() {
                         </td>
                         <td className="py-4">
                           <div className="text-gray-500 font-medium text-xs">
-                            <span className="text-gray-400">Beli:</span> Rp {p.cost_price.toLocaleString('id-ID')} <br/>
-                            <span className="text-gray-800 font-bold">Jual: Rp {p.selling_price.toLocaleString('id-ID')}</span>
+                            <span className="text-green-600">Beli:</span> Rp {p.cost_price.toLocaleString('id-ID')} <br/>
+                            <span className="text-green-600 font-bold">Jual: Rp {p.selling_price.toLocaleString('id-ID')}</span>
                           </div>
                         </td>
                         <td className="py-4">
@@ -325,7 +377,7 @@ function ProdukContent() {
                         <td className="py-4 text-center">
                           {saranRestock > 0 ? (
                             <div className="flex flex-col items-center">
-                              <span className="text-green-600 font-bold bg-green-50 px-3 py-1.5 rounded-full text-xs shadow-sm">
+                              <span className="text-primary font-bold bg-primary/10 px-3 py-1.5 rounded-full text-xs shadow-sm">
                                 Beli {saranRestock}
                               </span>
                               <span className="text-[10px] text-gray-400 font-medium mt-1.5">Laku {terjualMingguIni}/mgg</span>
@@ -336,7 +388,7 @@ function ProdukContent() {
                         </td>
                         <td className="py-4 text-center">
                           <div className="flex justify-center gap-2">
-                            <button onClick={() => handleEditClick(p)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-green-50 hover:text-green-500 transition">
+                            <button onClick={() => handleEditClick(p)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-primary/10 hover:text-primary transition">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             </button>
                             <button onClick={() => handleDelete(p.id)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition">

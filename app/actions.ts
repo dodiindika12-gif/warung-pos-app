@@ -88,32 +88,46 @@ export async function addExpense(description: string, amount: number) {
 // ==========================================
 export async function getRecentPurchases() {
   const { rows } = await turso.execute(`
-    SELECT p.id, pr.name as product_name, p.quantity, p.cost_price, p.total_cost, p.created_at 
+    SELECT p.id, pr.name as product_name, p.quantity, p.cost_price, p.total_cost, p.created_at, p.invoice_title, p.supplier 
     FROM purchases p
     JOIN products pr ON p.product_id = pr.id
     ORDER BY p.created_at DESC
-    LIMIT 10
+    LIMIT 20
   `);
   return JSON.parse(JSON.stringify(rows));
 }
 
-export async function addPurchase(productId: number, quantity: number, costPrice: number) {
-  const totalCost = quantity * costPrice;
+export async function processBulkPurchase(invoiceTitle: string, supplier: string, items: { productId: number, quantity: number, costPrice: number, sellingPrice: number }[], discount: number = 0) {
+  let grandTotal = 0;
   
-  await turso.execute({
-    sql: 'INSERT INTO purchases (product_id, quantity, cost_price, total_cost) VALUES (?, ?, ?, ?)',
-    args: [productId, quantity, costPrice, totalCost]
-  });
+  for (const item of items) {
+    grandTotal += (item.quantity * item.costPrice);
+  }
 
-  await turso.execute({
-    sql: 'UPDATE products SET stock = stock + ?, cost_price = ? WHERE id = ?',
-    args: [quantity, costPrice, productId]
-  });
+  for (const item of items) {
+    const itemSubtotal = item.quantity * item.costPrice;
+    
+    let itemDiscount = 0;
+    if (grandTotal > 0 && discount > 0) {
+      itemDiscount = (itemSubtotal / grandTotal) * discount;
+    }
+    
+    const discountedTotalCost = Math.max(0, itemSubtotal - itemDiscount);
+    const discountedCostPrice = item.quantity > 0 ? (discountedTotalCost / item.quantity) : 0;
+    
+    await turso.execute({
+      sql: 'INSERT INTO purchases (product_id, quantity, cost_price, total_cost, invoice_title, supplier) VALUES (?, ?, ?, ?, ?, ?)',
+      args: [item.productId, item.quantity, discountedCostPrice, discountedTotalCost, invoiceTitle, supplier]
+    });
 
-  await turso.execute({
-    sql: 'INSERT INTO operational_expenses (description, amount) VALUES (?, ?)',
-    args: [`Kulakan - ID Barang: ${productId}`, totalCost]
-  });
+    await turso.execute({
+      sql: 'UPDATE products SET stock = stock + ?, cost_price = ?, selling_price = ? WHERE id = ?',
+      args: [item.quantity, discountedCostPrice, item.sellingPrice, item.productId]
+    });
+  }
+
+  // Removed inserting Kulakan into operational_expenses per user request
+  // so it does not reduce the daily Net Profit report.
 
   return { success: true };
 }
@@ -121,17 +135,25 @@ export async function addPurchase(productId: number, quantity: number, costPrice
 // ==========================================
 // MODUL LAPORAN & ANALISIS (DENGAN PROFIT)
 // ==========================================
-export async function getDashboardStats() {
+export async function getDashboardStats(startDate?: string, endDate?: string) {
+  let dateFilter = "date(created_at) = date('now')";
+  let tDateFilter = "date(t.created_at) = date('now')";
+  
+  if (startDate && endDate) {
+    dateFilter = `date(created_at) BETWEEN date('${startDate}') AND date('${endDate}')`;
+    tDateFilter = `date(t.created_at) BETWEEN date('${startDate}') AND date('${endDate}')`;
+  }
+
   const stats = await turso.execute(`
     SELECT SUM(total_amount) as total_revenue,
     SUM(CASE WHEN payment_method = 'Tunai' THEN total_amount ELSE 0 END) as total_tunai,
     SUM(CASE WHEN payment_method = 'QRIS' THEN total_amount ELSE 0 END) as total_qris,
     COUNT(id) as total_trx
-    FROM transactions WHERE date(created_at) = date('now')
+    FROM transactions WHERE ${dateFilter}
   `);
 
   const expenses = await turso.execute(`
-    SELECT SUM(amount) as total_expense FROM operational_expenses WHERE date(created_at) = date('now')
+    SELECT SUM(amount) as total_expense FROM operational_expenses WHERE ${dateFilter}
   `);
 
   const cogs = await turso.execute(`
@@ -139,7 +161,7 @@ export async function getDashboardStats() {
     FROM transaction_items ti
     JOIN products p ON ti.product_id = p.id
     JOIN transactions t ON ti.transaction_id = t.id
-    WHERE date(t.created_at) = date('now')
+    WHERE ${tDateFilter}
   `);
 
   const bestSellers = await turso.execute(`
@@ -147,7 +169,7 @@ export async function getDashboardStats() {
     FROM transaction_items ti
     JOIN products p ON ti.product_id = p.id
     JOIN transactions t ON ti.transaction_id = t.id
-    WHERE date(t.created_at) = date('now')
+    WHERE ${tDateFilter}
     GROUP BY p.id ORDER BY total_sold DESC LIMIT 10
   `);
 
@@ -169,6 +191,56 @@ export async function getDashboardStats() {
       name: row.name, stock: Number(row.stock), barcode: row.barcode
     }))
   };
+}
+
+export async function getChartData(startDate: string, endDate: string) {
+  const query = `
+    WITH RECURSIVE dates(date) AS (
+      SELECT date(?)
+      UNION ALL
+      SELECT date(date, '+1 day')
+      FROM dates
+      WHERE date < date(?)
+    ),
+    DailyRevenue AS (
+      SELECT date(created_at) as dt, SUM(total_amount) as revenue
+      FROM transactions
+      WHERE date(created_at) BETWEEN date(?) AND date(?)
+      GROUP BY date(created_at)
+    ),
+    DailyExpense AS (
+      SELECT date(created_at) as dt, SUM(amount) as expense
+      FROM operational_expenses
+      WHERE date(created_at) BETWEEN date(?) AND date(?)
+      GROUP BY date(created_at)
+    ),
+    DailyCOGS AS (
+      SELECT date(t.created_at) as dt, SUM(ti.quantity * p.cost_price) as cogs
+      FROM transaction_items ti
+      JOIN products p ON ti.product_id = p.id
+      JOIN transactions t ON ti.transaction_id = t.id
+      WHERE date(t.created_at) BETWEEN date(?) AND date(?)
+      GROUP BY date(t.created_at)
+    )
+    SELECT 
+      d.date, 
+      COALESCE(r.revenue, 0) as revenue,
+      COALESCE(e.expense, 0) as expense,
+      COALESCE(c.cogs, 0) as cogs,
+      (COALESCE(r.revenue, 0) - COALESCE(e.expense, 0) - COALESCE(c.cogs, 0)) as profit
+    FROM dates d
+    LEFT JOIN DailyRevenue r ON d.date = r.dt
+    LEFT JOIN DailyExpense e ON d.date = e.dt
+    LEFT JOIN DailyCOGS c ON d.date = c.dt
+    ORDER BY d.date ASC;
+  `;
+
+  const { rows } = await turso.execute({
+    sql: query,
+    args: [startDate, endDate, startDate, endDate, startDate, endDate, startDate, endDate]
+  });
+
+  return JSON.parse(JSON.stringify(rows));
 }
 
 export async function getTransactionHistory(dateStr?: string) {
