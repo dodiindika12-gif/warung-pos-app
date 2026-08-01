@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation } from '../actions';
+import BarcodeScanner from '../components/BarcodeScanner';
 
 type Product = { id: number; name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number; sold_last_7_days: number };
 
@@ -12,6 +13,7 @@ function ProdukContent() {
   const [formData, setFormData] = useState({ name: '', barcode: '', category: 'Umum', cost_price: '', selling_price: '', stock: '' });
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
 
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get('search') || '';
@@ -141,7 +143,12 @@ function ProdukContent() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Barcode (Opsional)</label>
-                  <input type="text" value={formData.barcode} onChange={e => setFormData({...formData, barcode: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-mono text-gray-800 focus:outline-none transition" placeholder="Scan barcode..." />
+                  <div className="flex gap-2">
+                    <input type="text" value={formData.barcode} onChange={e => setFormData({...formData, barcode: e.target.value})} className="flex-1 bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-mono text-gray-800 focus:outline-none transition" placeholder="Ketik atau scan barcode..." />
+                    <button type="button" onClick={() => setShowScanner(true)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 rounded-2xl shadow-sm transition flex items-center justify-center whitespace-nowrap">
+                      📷 Scan
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Kategori</label>
@@ -210,6 +217,16 @@ function ProdukContent() {
                   {loading ? 'Menyimpan...' : (editingProductId ? 'Simpan Perubahan' : '+ Simpan Produk')}
                 </button>
               </form>
+              
+              {showScanner && (
+                <BarcodeScanner 
+                  onScanSuccess={(code) => {
+                    setFormData({...formData, barcode: code});
+                    setShowScanner(false);
+                  }}
+                  onClose={() => setShowScanner(false)}
+                />
+              )}
               </div>
             </div>
           )}
