@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation, getCategories, addCategory, updateCategory, deleteCategory } from '../actions';
+import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation, getCategories, addCategory, updateCategory, deleteCategory, processOpname } from '../actions';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { Button } from "@/components/ui/button";
 
@@ -19,6 +19,11 @@ function ProdukContent() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [newCatName, setNewCatName] = useState('');
   const [editCatId, setEditCatId] = useState<number | null>(null);
+
+  const [showOpnameModal, setShowOpnameModal] = useState(false);
+  const [opnameItems, setOpnameItems] = useState<{product: Product, realStock: number}[]>([]);
+  const [opnameSearchQuery, setOpnameSearchQuery] = useState('');
+  const [showOpnameDropdown, setShowOpnameDropdown] = useState(false);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -66,6 +71,33 @@ function ProdukContent() {
       await deleteCategory(id);
       await loadProducts();
     }
+  };
+
+  const handleSaveOpname = async () => {
+    if (opnameItems.length === 0) return;
+    setLoading(true);
+    const itemsToProcess = opnameItems.map(item => ({
+      id: item.product.id,
+      realStock: item.realStock
+    }));
+    const res = await processOpname(itemsToProcess);
+    if (!res.success) {
+      alert(res.error);
+    } else {
+      alert('Stock Opname berhasil disimpan!');
+      setOpnameItems([]);
+      setShowOpnameModal(false);
+      await loadProducts();
+    }
+    setLoading(false);
+  };
+
+  const handleAddOpnameItem = (product: Product) => {
+    if (!opnameItems.find(item => item.product.id === product.id)) {
+      setOpnameItems([...opnameItems, { product, realStock: product.stock }]);
+    }
+    setOpnameSearchQuery('');
+    setShowOpnameDropdown(false);
   };
 
   const handleAddSubmit = async (e: React.FormEvent) => {
@@ -154,21 +186,14 @@ function ProdukContent() {
               onClick={() => setShowCategoryModal(true)} 
               className="font-bold px-4 md:px-6 py-3 rounded-2xl shadow-sm transition flex items-center gap-2"
             >
-              🏷️ Kelola Kategori
+              🏷️ Kategori
             </Button>
             <Button 
               variant="outline"
-              onClick={() => router.push('/belanja')} 
-              className="font-bold px-4 md:px-6 py-3 rounded-2xl shadow-sm transition flex items-center gap-2 text-primary border-primary hover:bg-primary/5"
-            >
-              🛒 Daftar Belanja
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={() => alert('Fitur Stock Opname segera hadir!')} 
+              onClick={() => setShowOpnameModal(true)} 
               className="font-bold px-6 py-3 rounded-2xl shadow-sm transition flex items-center gap-2"
             >
-              📋 Stock Opname
+              📋 Opname
             </Button>
             <Button 
               onClick={() => {
@@ -176,7 +201,7 @@ function ProdukContent() {
                 setFormData({ name: '', barcode: '', category: 'Umum', selling_price: '', cost_price: '', stock: '' });
                 setShowAddForm(true);
               }} 
-              className="h-12 px-6 rounded-2xl text-base font-bold shadow-lg shadow-primary/30 flex items-center gap-2"
+              className="font-bold px-6 py-3 rounded-2xl shadow-lg shadow-primary/30 flex items-center gap-2"
             >
               + Tambah Produk
             </Button>
@@ -478,6 +503,108 @@ function ProdukContent() {
             </div>
           )}
           
+          {/* Modal Stock Opname */}
+          {showOpnameModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+              <div className="w-full max-w-4xl bg-white p-8 rounded-[32px] shadow-2xl relative max-h-[90vh] flex flex-col">
+                <button onClick={() => {setShowOpnameModal(false); setOpnameItems([]);}} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                <h2 className="text-2xl font-black mb-2 text-gray-800">📋 Stock Opname</h2>
+                <p className="text-gray-500 mb-6 font-medium">Sesuaikan stok fisik dengan data sistem.</p>
+                
+                <div className="relative mb-6">
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Cari nama barang atau scan barcode..." 
+                      value={opnameSearchQuery}
+                      onChange={(e) => {
+                        setOpnameSearchQuery(e.target.value);
+                        setShowOpnameDropdown(true);
+                      }}
+                      onFocus={() => setShowOpnameDropdown(true)}
+                      className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition"
+                    />
+                  </div>
+                  {showOpnameDropdown && opnameSearchQuery && (
+                    <div className="absolute z-10 w-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 max-h-60 overflow-y-auto">
+                      {products.filter(p => p.name.toLowerCase().includes(opnameSearchQuery.toLowerCase()) || p.barcode.includes(opnameSearchQuery)).map(p => (
+                        <div key={p.id} onClick={() => handleAddOpnameItem(p)} className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0 flex justify-between items-center transition">
+                          <div>
+                            <p className="font-bold text-gray-800">{p.name}</p>
+                            <p className="text-xs text-gray-500 mt-1">{p.barcode || 'Tanpa Barcode'}</p>
+                          </div>
+                          <span className="text-xs font-bold bg-gray-100 px-2 py-1 rounded-lg">Stok: {p.stock}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 overflow-y-auto mb-6 bg-gray-50 rounded-2xl border border-gray-100">
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-100/50 sticky top-0 z-10 backdrop-blur-sm">
+                      <tr>
+                        <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Barang</th>
+                        <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Stok Sistem</th>
+                        <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Stok Fisik</th>
+                        <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Selisih</th>
+                        <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {opnameItems.length === 0 ? (
+                        <tr><td colSpan={5} className="p-8 text-center text-gray-400 font-medium">Belum ada barang untuk opname</td></tr>
+                      ) : (
+                        opnameItems.map((item, index) => {
+                          const diff = item.realStock - item.product.stock;
+                          return (
+                            <tr key={item.product.id} className="bg-white">
+                              <td className="p-4">
+                                <p className="font-bold text-gray-800">{item.product.name}</p>
+                                <p className="text-xs text-gray-500 mt-1">{item.product.barcode || '-'}</p>
+                              </td>
+                              <td className="p-4 text-center font-bold text-gray-600">{item.product.stock}</td>
+                              <td className="p-4 text-center">
+                                <input 
+                                  type="number" 
+                                  value={item.realStock}
+                                  onChange={(e) => {
+                                    const newItems = [...opnameItems];
+                                    newItems[index].realStock = Number(e.target.value) || 0;
+                                    setOpnameItems(newItems);
+                                  }}
+                                  className="w-20 text-center bg-gray-50 border border-gray-200 focus:bg-white focus:border-primary rounded-xl p-2 text-sm font-bold text-gray-800 focus:outline-none transition mx-auto"
+                                />
+                              </td>
+                              <td className="p-4 text-center font-black">
+                                <span className={diff > 0 ? 'text-green-500' : diff < 0 ? 'text-red-500' : 'text-gray-400'}>
+                                  {diff > 0 ? `+${diff}` : diff}
+                                </span>
+                              </td>
+                              <td className="p-4 text-center">
+                                <button onClick={() => setOpnameItems(opnameItems.filter(i => i.product.id !== item.product.id))} className="text-red-400 hover:text-red-600 transition">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <Button disabled={loading || opnameItems.length === 0} onClick={handleSaveOpname} className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/30">
+                  {loading ? 'Menyimpan...' : 'Simpan Opname'}
+                </Button>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     </div>

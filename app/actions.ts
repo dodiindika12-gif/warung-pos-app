@@ -36,6 +36,21 @@ export async function deleteProduct(id: number) {
   return { success: true };
 }
 
+export async function processOpname(items: {id: number, realStock: number}[]) {
+  try {
+    const statements = items.map(item => ({
+      sql: 'UPDATE products SET stock = ? WHERE id = ?',
+      args: [item.realStock, item.id]
+    }));
+    await turso.batch(statements, 'write');
+    revalidatePath('/produk');
+    return { success: true };
+  } catch (error) {
+    console.error('Opname Error:', error);
+    return { success: false, error: 'Gagal memproses Stock Opname' };
+  }
+}
+
 export async function getProductsWithRecommendation() {
   const { rows } = await turso.execute(`
     SELECT 

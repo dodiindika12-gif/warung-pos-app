@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { getProducts, getRecentPurchases, processBulkPurchase, addProduct, getShoppingList, removeCheckedFromShoppingList } from '../actions';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ type Purchase = { id: number; product_name: string; quantity: number; cost_price
 type CartItem = { productId: number; name: string; barcode: string; quantity: number; costPrice: number; sellingPrice: number; oldStock: number };
 
 export default function PembelianPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(false);
@@ -204,9 +206,18 @@ export default function PembelianPage() {
                 <h1 className="text-3xl font-black text-gray-800">📦 Pembelian & Restock</h1>
                 <p className="text-gray-500 font-medium mt-1">Kelola stok masuk dan catat pengeluaran kulakan</p>
               </div>
-              <Button onClick={() => setShowPurchaseModal(true)} className="h-12 px-6 rounded-2xl font-bold shadow-lg shadow-primary/30 text-base flex items-center gap-2">
-                + Tambah Pembelian (Nota)
-              </Button>
+              <div className="flex gap-4">
+                <Button 
+                  variant="outline"
+                  onClick={() => router.push('/belanja')} 
+                  className="font-bold px-4 md:px-6 py-3 rounded-2xl shadow-sm transition flex items-center gap-2 text-primary border-primary hover:bg-primary/5"
+                >
+                  🛒 List Beli
+                </Button>
+                <Button onClick={() => setShowPurchaseModal(true)} className="font-bold px-6 py-3 rounded-2xl shadow-lg shadow-primary/30 flex items-center gap-2">
+                  + Tambah Nota
+                </Button>
+              </div>
             </div>
 
             {/* TABEL RIWAYAT KULAKAN (UTAMA) */}
