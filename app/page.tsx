@@ -226,20 +226,11 @@ async function loadProducts() {
       {/* KANAN: Panel Keranjang */}
       <div className={`fixed inset-0 z-40 bg-white flex-col md:static md:w-96 md:bg-white md:border-l md:border-gray-100 md:flex shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.02)] ${isMobileCartOpen ? 'flex' : 'hidden md:flex'}`}>
         <div className="p-6 md:p-8 pb-4">
-          <div className="flex justify-between items-start border-b border-gray-100 pb-4 md:pb-6">
-            <div>
-              <p className="text-sm text-gray-500 font-medium mb-1">Transaksi Aktif</p>
-              <h2 className="text-xl md:text-2xl font-black text-gray-800">#{transactionId || '------'}</h2>
-            </div>
-            <div className="text-right flex gap-4 items-center">
-              <div className="hidden md:block">
-                <p className="text-sm text-gray-500 font-medium mb-1">Status</p>
-                <h2 className="text-xl font-bold text-primary">Kasir</h2>
-              </div>
-              <button className="md:hidden p-2 bg-gray-100 rounded-full text-gray-500" onClick={() => setIsMobileCartOpen(false)}>
-                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
+          <div className="flex justify-between items-center border-b border-gray-100 pb-4 md:pb-6">
+            <h2 className="text-xl font-bold text-gray-800">Keranjang Belanja</h2>
+            <button className="md:hidden p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition" onClick={() => setIsMobileCartOpen(false)}>
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
           </div>
         </div>
 
@@ -273,7 +264,7 @@ async function loadProducts() {
           )}
         </div>
 
-        <div className="p-8 bg-white border-t border-gray-100">
+        <div className="p-8 pb-28 md:pb-8 bg-white border-t border-gray-100">
           <div className="space-y-3 mb-6">
             <div className="flex justify-between text-sm text-gray-500 font-medium">
               <span>Total Item</span>
