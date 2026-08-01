@@ -112,7 +112,7 @@ function ProdukContent() {
                 setEditingProductId(null);
                 setShowAddForm(true);
               }} 
-              className="bg-[#EA7C2A] hover:bg-[#d66b1f] text-white font-bold px-6 py-3 rounded-2xl shadow-[0_8px_20px_-6px_rgba(234,124,42,0.5)] transition flex items-center gap-2"
+              className="bg-[#16a34a] hover:bg-[#15803d] text-white font-bold px-6 py-3 rounded-2xl shadow-[0_8px_20px_-6px_rgba(22,163,74,0.5)] transition flex items-center gap-2"
             >
               + Tambah Produk
             </button>
@@ -137,34 +137,76 @@ function ProdukContent() {
               <form onSubmit={handleAddSubmit} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Nama Barang</label>
-                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="Cth: Kopi Kapal Api" />
+                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="Cth: Kopi Kapal Api" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Barcode (Opsional)</label>
-                  <input type="text" value={formData.barcode} onChange={e => setFormData({...formData, barcode: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-mono text-gray-800 focus:outline-none transition" placeholder="Scan barcode..." />
+                  <input type="text" value={formData.barcode} onChange={e => setFormData({...formData, barcode: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-mono text-gray-800 focus:outline-none transition" placeholder="Scan barcode..." />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Kategori</label>
-                  <input required type="text" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" />
+                  <select required value={formData.category} onChange={e => {
+                    const newCat = e.target.value;
+                    let recommendedStr = formData.selling_price;
+                    if (formData.cost_price) {
+                       const costNum = Number(formData.cost_price);
+                       const margin = newCat === 'Sembako' ? 0.15 : 0.25;
+                       const rawPrice = costNum * (1 + margin);
+                       const rounded = Math.ceil(rawPrice / 500) * 500;
+                       recommendedStr = rounded.toString();
+                    }
+                    setFormData({...formData, category: newCat, selling_price: recommendedStr});
+                  }} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition appearance-none cursor-pointer">
+                    <option value="Umum">Umum</option>
+                    <option value="Sembako">Sembako</option>
+                    <option value="Minuman">Minuman</option>
+                    <option value="Makanan Ringan">Makanan Ringan</option>
+                    <option value="Bumbu Dapur">Bumbu Dapur</option>
+                    <option value="Kebutuhan Rumah">Kebutuhan Rumah</option>
+                    <option value="Rokok">Rokok</option>
+                  </select>
                 </div>
                 
                 <div className="flex gap-4">
                   <div className="flex-1">
                     <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Harga Modal</label>
-                    <input required type="number" value={formData.cost_price} onChange={e => setFormData({...formData, cost_price: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="0" />
+                    <input required type="number" value={formData.cost_price} onChange={e => {
+                        const newCost = e.target.value;
+                        const costNum = Number(newCost);
+                        let recommendedStr = formData.selling_price;
+                        if (newCost && !isNaN(costNum)) {
+                          const margin = formData.category === 'Sembako' ? 0.15 : 0.25;
+                          const rawPrice = costNum * (1 + margin);
+                          const rounded = Math.ceil(rawPrice / 500) * 500;
+                          recommendedStr = rounded.toString();
+                        }
+                        setFormData({...formData, cost_price: newCost, selling_price: recommendedStr});
+                    }} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="0" />
                   </div>
                   <div className="flex-1">
                     <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Harga Jual</label>
-                    <input required type="number" value={formData.selling_price} onChange={e => setFormData({...formData, selling_price: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="0" />
+                    <input required type="number" value={formData.selling_price} onChange={e => setFormData({...formData, selling_price: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="0" />
                   </div>
                 </div>
 
+                {formData.cost_price && formData.selling_price && (
+                  <div className="bg-green-50 p-4 rounded-2xl border border-green-100 flex items-center justify-between">
+                    <span className="text-sm font-bold text-green-800">Margin Penjualan:</span>
+                    <div className="text-right">
+                      <span className="text-sm font-black text-green-600 mr-2">Rp {(Number(formData.selling_price) - Number(formData.cost_price)).toLocaleString('id-ID')}</span>
+                      <span className="text-xs font-bold bg-white text-green-600 px-2 py-1 rounded-lg border border-green-200">
+                        {Number(formData.cost_price) > 0 ? (((Number(formData.selling_price) - Number(formData.cost_price)) / Number(formData.cost_price)) * 100).toFixed(1) : 0}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Stok Awal</label>
-                  <input required type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="0" />
+                  <input required type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="0" />
                 </div>
 
-                <button disabled={loading} type="submit" className="w-full bg-[#EA7C2A] hover:bg-[#d66b1f] text-white font-bold py-4 rounded-2xl shadow-[0_8px_20px_-6px_rgba(234,124,42,0.5)] transition mt-4">
+                <button disabled={loading} type="submit" className="w-full bg-[#16a34a] hover:bg-[#15803d] text-white font-bold py-4 rounded-2xl shadow-[0_8px_20px_-6px_rgba(22,163,74,0.5)] transition mt-4">
                   {loading ? 'Menyimpan...' : (editingProductId ? 'Simpan Perubahan' : '+ Simpan Produk')}
                 </button>
               </form>
@@ -184,7 +226,7 @@ function ProdukContent() {
                   placeholder="Cari produk..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-orange-500 transition"
+                  className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-green-500 transition"
                 />
                 {filterType === 'low_stock' && (
                   <button onClick={() => setFilterType('')} className="bg-red-50 text-red-500 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-100 transition">
@@ -230,7 +272,7 @@ function ProdukContent() {
                     if (p.stock === 0) {
                       status = 'Habis'; statusColor = 'bg-red-50 text-red-500 border border-red-100';
                     } else if (p.stock <= bufferStok) {
-                      status = 'Kritis'; statusColor = 'bg-orange-50 text-orange-600 border border-orange-200';
+                      status = 'Kritis'; statusColor = 'bg-green-50 text-green-600 border border-green-200';
                     } else if (p.stock > (targetStokIdeal * 1.5) && p.stock > 10) {
                       status = 'Overstock'; statusColor = 'bg-blue-50 text-blue-500 border border-blue-100';
                     } else {
@@ -266,7 +308,7 @@ function ProdukContent() {
                         <td className="py-4 text-center">
                           {saranRestock > 0 ? (
                             <div className="flex flex-col items-center">
-                              <span className="text-orange-600 font-bold bg-orange-50 px-3 py-1.5 rounded-full text-xs shadow-sm">
+                              <span className="text-green-600 font-bold bg-green-50 px-3 py-1.5 rounded-full text-xs shadow-sm">
                                 Beli {saranRestock}
                               </span>
                               <span className="text-[10px] text-gray-400 font-medium mt-1.5">Laku {terjualMingguIni}/mgg</span>
@@ -277,7 +319,7 @@ function ProdukContent() {
                         </td>
                         <td className="py-4 text-center">
                           <div className="flex justify-center gap-2">
-                            <button onClick={() => handleEditClick(p)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-orange-50 hover:text-orange-500 transition">
+                            <button onClick={() => handleEditClick(p)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-green-50 hover:text-green-500 transition">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             </button>
                             <button onClick={() => handleDelete(p.id)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition">

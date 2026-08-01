@@ -44,7 +44,7 @@ export default function LaporanPage() {
           </div>
           
           <div className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 flex flex-col justify-center relative overflow-hidden">
-            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-orange-50 rounded-full opacity-50 z-0"></div>
+            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-green-50 rounded-full opacity-50 z-0"></div>
             <p className="text-sm font-bold text-gray-400 uppercase tracking-wide relative z-10">Total Transaksi</p>
             <p className="text-3xl font-black text-gray-800 mt-2 relative z-10">{stats.totalTrx} <span className="text-lg font-medium text-gray-400">Trx</span></p>
           </div>
@@ -55,7 +55,7 @@ export default function LaporanPage() {
             <p className="text-2xl font-bold text-gray-600 mt-2 relative z-10">Rp {(stats.cogs + stats.expense).toLocaleString('id-ID')}</p>
           </div>
 
-          <div className={`p-6 rounded-[32px] shadow-sm border flex flex-col justify-center relative overflow-hidden ${netProfit >= 0 ? 'bg-[#EA7C2A] border-[#d66b1f] text-white' : 'bg-red-500 border-red-600 text-white'}`}>
+          <div className={`p-6 rounded-[32px] shadow-sm border flex flex-col justify-center relative overflow-hidden ${netProfit >= 0 ? 'bg-[#16a34a] border-[#15803d] text-white' : 'bg-red-500 border-red-600 text-white'}`}>
             <p className="text-sm font-bold opacity-80 uppercase tracking-wide relative z-10">Keuntungan Hari Ini</p>
             <p className="text-3xl font-black mt-2 relative z-10">Rp {netProfit.toLocaleString('id-ID')}</p>
           </div>
@@ -98,13 +98,13 @@ export default function LaporanPage() {
               ) : (
                 stats.bestSellers.map((item: any, idx: number) => (
                   <Link href={`/produk?search=${encodeURIComponent(item.name)}`} key={idx}>
-                    <div className="flex items-center gap-4 bg-orange-50 p-4 rounded-2xl border border-transparent hover:border-orange-200 transition cursor-pointer mb-3">
-                      <div className="w-10 h-10 rounded-full bg-white text-orange-600 font-black flex items-center justify-center shadow-sm">
+                    <div className="flex items-center gap-4 bg-green-50 p-4 rounded-2xl border border-transparent hover:border-green-200 transition cursor-pointer mb-3">
+                      <div className="w-10 h-10 rounded-full bg-white text-green-600 font-black flex items-center justify-center shadow-sm">
                         {idx + 1}
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold text-gray-800 text-sm line-clamp-1">{item.name}</h3>
-                        <p className="text-xs font-medium text-orange-500 mt-1">Terjual: {item.total_sold} Pcs</p>
+                        <p className="text-xs font-medium text-green-500 mt-1">Terjual: {item.total_sold} Pcs</p>
                       </div>
                     </div>
                   </Link>
@@ -152,7 +152,7 @@ export default function LaporanPage() {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-800">🧾 10 Transaksi Terakhir</h2>
               <Link href="/riwayat">
-                <button className="text-sm text-orange-500 font-bold hover:text-orange-600 transition bg-orange-50 px-4 py-2 rounded-xl">Selengkapnya &rarr;</button>
+                <button className="text-sm text-green-500 font-bold hover:text-green-600 transition bg-green-50 px-4 py-2 rounded-xl">Selengkapnya &rarr;</button>
               </Link>
             </div>
             

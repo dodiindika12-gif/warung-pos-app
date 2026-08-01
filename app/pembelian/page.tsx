@@ -97,7 +97,7 @@ async function loadData() {
                       onFocus={() => setShowDropdown(true)}
                       onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                       placeholder="Scan barcode atau ketik nama..." 
-                      className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition"
+                      className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition"
                     />
                     {showDropdown && searchQuery && (
                       <div className="absolute z-20 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl max-h-60 overflow-y-auto">
@@ -107,7 +107,7 @@ async function loadData() {
                             <div 
                               key={p.id} 
                               onClick={() => handleProductSelect(p.id.toString())}
-                              className="p-4 hover:bg-orange-50 cursor-pointer border-b border-gray-50 last:border-0 transition"
+                              className="p-4 hover:bg-green-50 cursor-pointer border-b border-gray-50 last:border-0 transition"
                             >
                               <div className="font-bold text-gray-800 text-sm">{p.name}</div>
                               <div className="text-xs text-gray-400 mt-1">Barcode: {p.barcode || '-'} | Stok: {p.stock}</div>
@@ -117,12 +117,12 @@ async function loadData() {
                     )}
                   </>
                 ) : (
-                  <div className="flex items-center justify-between w-full bg-orange-50 border border-orange-200 rounded-2xl p-4">
+                  <div className="flex items-center justify-between w-full bg-green-50 border border-green-200 rounded-2xl p-4">
                     <div>
-                      <div className="text-sm font-bold text-orange-700">{products.find(p => p.id.toString() === formData.productId)?.name}</div>
-                      <div className="text-xs text-orange-500 mt-1">Stok saat ini: {products.find(p => p.id.toString() === formData.productId)?.stock}</div>
+                      <div className="text-sm font-bold text-green-700">{products.find(p => p.id.toString() === formData.productId)?.name}</div>
+                      <div className="text-xs text-green-500 mt-1">Stok saat ini: {products.find(p => p.id.toString() === formData.productId)?.stock}</div>
                     </div>
-                    <button type="button" onClick={() => { setFormData({...formData, productId: '', costPrice: ''}); setSearchQuery(''); }} className="text-orange-500 hover:text-red-500 font-bold px-3 py-1 bg-white rounded-lg shadow-sm text-xs transition">Ganti</button>
+                    <button type="button" onClick={() => { setFormData({...formData, productId: '', costPrice: ''}); setSearchQuery(''); }} className="text-green-500 hover:text-red-500 font-bold px-3 py-1 bg-white rounded-lg shadow-sm text-xs transition">Ganti</button>
                   </div>
                 )}
               </div>
@@ -133,7 +133,7 @@ async function loadData() {
                   required type="number" 
                   value={formData.quantity} 
                   onChange={e => setFormData({...formData, quantity: e.target.value})} 
-                  className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" 
+                  className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" 
                   placeholder="0"
                 />
               </div>
@@ -144,13 +144,13 @@ async function loadData() {
                   required type="number" 
                   value={formData.costPrice} 
                   onChange={e => setFormData({...formData, costPrice: e.target.value})} 
-                  className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-orange-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" 
+                  className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" 
                   placeholder="0"
                 />
                 <p className="text-[10px] text-gray-400 mt-2 font-medium">*Harga beli ini akan mengupdate Harga Modal barang di database.</p>
               </div>
 
-              <button disabled={loading} type="submit" className="w-full bg-[#EA7C2A] hover:bg-[#d66b1f] text-white font-bold py-4 rounded-2xl shadow-[0_8px_20px_-6px_rgba(234,124,42,0.5)] transition mt-4">
+              <button disabled={loading} type="submit" className="w-full bg-[#16a34a] hover:bg-[#15803d] text-white font-bold py-4 rounded-2xl shadow-[0_8px_20px_-6px_rgba(22,163,74,0.5)] transition mt-4">
                 {loading ? 'Menyimpan...' : 'Simpan Transaksi Belanja'}
               </button>
             </form>
@@ -182,7 +182,7 @@ async function loadData() {
                       <td className="py-4 font-bold text-gray-800 text-sm">{p.product_name}</td>
                       <td className="py-4 text-center font-bold text-gray-800 bg-gray-50 rounded-xl my-2 block w-max mx-auto px-4 py-1">{p.quantity}</td>
                       <td className="py-4 text-right text-gray-500 font-medium text-sm">Rp {p.cost_price.toLocaleString('id-ID')}</td>
-                      <td className="py-4 text-right font-black text-orange-600 text-sm">Rp {p.total_cost.toLocaleString('id-ID')}</td>
+                      <td className="py-4 text-right font-black text-green-600 text-sm">Rp {p.total_cost.toLocaleString('id-ID')}</td>
                     </tr>
                   ))
                 )}

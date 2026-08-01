@@ -19,6 +19,7 @@ export default function KasirPage() {
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'Tunai' | 'QRIS/Card'>('Tunai');
   const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
+  const [transactionId, setTransactionId] = useState('');
 
   useEffect(() => {
     loadProducts();
@@ -92,8 +93,8 @@ async function loadProducts() {
       
       {/* KIRI: Area Menu Utama */}
       <div className="flex-1 flex flex-col p-4 md:p-8 overflow-y-auto pb-24 md:pb-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
-          <form onSubmit={handleBarcodeSubmit} className="relative w-full md:w-96">
+        <div className="flex flex-col justify-between items-start mb-6 md:mb-8 gap-4 w-full">
+          <form onSubmit={handleBarcodeSubmit} className="relative w-full">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 absolute left-4 top-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             <input 
               type="text" 
@@ -101,15 +102,15 @@ async function loadProducts() {
               placeholder="Scan barcode atau cari barang..." 
               value={searchQuery} 
               onChange={(e) => setSearchQuery(e.target.value)} 
-              className="w-full bg-white border border-gray-100 rounded-full py-3 pl-12 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full bg-white border border-gray-100 rounded-full py-3 pl-12 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </form>
-          {outOfStockCount > 0 && <div className="text-orange-500 font-semibold text-sm">{outOfStockCount} barang habis</div>}
+          {outOfStockCount > 0 && <div className="text-green-500 font-semibold text-sm">{outOfStockCount} barang habis</div>}
         </div>
 
-        <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
+        <div className="flex gap-4 mb-8 overflow-x-auto pb-2 shrink-0 min-h-[48px] items-center">
           {categories.map(cat => (
-            <button key={cat} onClick={() => setActiveCategory(cat)} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition shadow-sm border ${activeCategory === cat ? 'bg-orange-50 text-orange-500 border-orange-200' : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'}`}>
+            <button key={cat} onClick={() => setActiveCategory(cat)} className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition shadow-sm border ${activeCategory === cat ? 'bg-green-50 text-green-500 border-green-200' : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'}`}>
               <span>{cat === 'All' ? '📦' : '🏷️'}</span> {cat}
             </button>
           ))}
@@ -123,14 +124,14 @@ async function loadProducts() {
             <div className="flex bg-white rounded-xl border border-gray-100 p-1">
               <button 
                 onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg transition ${viewMode === 'grid' ? 'bg-orange-50 text-orange-500' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`p-2 rounded-lg transition ${viewMode === 'grid' ? 'bg-green-50 text-green-500' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 {/* Icon Grid */}
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
               </button>
               <button 
                 onClick={() => setViewMode('list')}
-                className={`p-2 rounded-lg transition ${viewMode === 'list' ? 'bg-orange-50 text-orange-500' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`p-2 rounded-lg transition ${viewMode === 'list' ? 'bg-green-50 text-green-500' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 {/* Icon List */}
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -144,22 +145,22 @@ async function loadProducts() {
           {filteredProducts.map(p => {
             if (viewMode === 'grid') {
               return (
-                <div key={p.id} onClick={() => p.stock > 0 && addToCart(p)} className={`bg-white rounded-[32px] p-6 flex flex-col items-center text-center shadow-sm border border-gray-100 transition ${p.stock > 0 ? 'cursor-pointer hover:shadow-md hover:border-orange-200' : 'opacity-50 cursor-not-allowed'}`}>
+                <div key={p.id} onClick={() => p.stock > 0 && addToCart(p)} className={`bg-white rounded-[32px] p-6 flex flex-col items-center text-center shadow-sm border border-gray-100 transition ${p.stock > 0 ? 'cursor-pointer hover:shadow-md hover:border-green-200' : 'opacity-50 cursor-not-allowed'}`}>
                   {/* Inisial Placeholder Murni */}
-                  <div className="w-32 h-32 rounded-full bg-gray-50 border-4 border-white shadow-inner mb-4 flex items-center justify-center text-4xl overflow-hidden text-orange-400 font-black">
+                  <div className="w-32 h-32 rounded-full bg-gray-50 border-4 border-white shadow-inner mb-4 flex items-center justify-center text-4xl overflow-hidden text-green-400 font-black">
                     {p.name.charAt(0).toUpperCase()}
                   </div>
                   
                   <h3 className="font-bold text-gray-800 mb-1 line-clamp-1">{p.name}</h3>
-                  <p className="text-orange-500 font-bold text-lg mb-3">Rp {p.selling_price.toLocaleString('id-ID')}</p>
+                  <p className="text-green-500 font-bold text-lg mb-3">Rp {p.selling_price.toLocaleString('id-ID')}</p>
                   <p className="text-xs text-gray-400 font-medium">Stok: {p.stock}</p>
                 </div>
               );
             } else {
               return (
-                <div key={p.id} onClick={() => p.stock > 0 && addToCart(p)} className={`bg-white rounded-[24px] p-4 flex items-center shadow-sm border border-gray-100 transition ${p.stock > 0 ? 'cursor-pointer hover:shadow-md hover:border-orange-200' : 'opacity-50 cursor-not-allowed'}`}>
+                <div key={p.id} onClick={() => p.stock > 0 && addToCart(p)} className={`bg-white rounded-[24px] p-4 flex items-center shadow-sm border border-gray-100 transition ${p.stock > 0 ? 'cursor-pointer hover:shadow-md hover:border-green-200' : 'opacity-50 cursor-not-allowed'}`}>
                   {/* Inisial Kiri */}
-                  <div className="w-20 h-20 rounded-2xl bg-gray-50 flex-shrink-0 flex items-center justify-center font-black text-3xl text-orange-400 mr-5 shadow-inner">
+                  <div className="w-20 h-20 rounded-2xl bg-gray-50 flex-shrink-0 flex items-center justify-center font-black text-3xl text-green-400 mr-5 shadow-inner">
                     {p.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 flex flex-col justify-between py-1">
@@ -167,7 +168,7 @@ async function loadProducts() {
                     <p className="text-sm text-gray-400 font-medium mt-1">{p.category} &bull; Stok: {p.stock}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-orange-500 font-bold text-xl">Rp {p.selling_price.toLocaleString('id-ID')}</p>
+                    <p className="text-green-500 font-bold text-xl">Rp {p.selling_price.toLocaleString('id-ID')}</p>
                   </div>
                 </div>
               );
@@ -178,19 +179,19 @@ async function loadProducts() {
 
       {/* TOMBOL CART MOBILE */}
       <div className="md:hidden fixed bottom-20 right-4 z-30">
-        <button onClick={() => setIsMobileCartOpen(true)} className="bg-orange-500 hover:bg-orange-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center relative transition">
+        <button onClick={() => setIsMobileCartOpen(true)} className="bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center relative transition">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
           {cart.length > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">{cart.reduce((a,b)=>a+b.quantity, 0)}</span>}
         </button>
       </div>
 
       {/* KANAN: Panel Keranjang */}
-      <div className={`fixed inset-0 z-40 bg-white flex-col md:static md:w-96 md:bg-white md:border-l md:border-gray-100 md:flex shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.02)] md:rounded-tr-[40px] md:rounded-br-[40px] ${isMobileCartOpen ? 'flex' : 'hidden md:flex'}`}>
+      <div className={`fixed inset-0 z-40 bg-white flex-col md:static md:w-96 md:bg-white md:border-l md:border-gray-100 md:flex shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.02)] ${isMobileCartOpen ? 'flex' : 'hidden md:flex'}`}>
         <div className="p-6 md:p-8 pb-4">
           <div className="flex justify-between items-start border-b border-gray-100 pb-4 md:pb-6">
             <div>
               <p className="text-sm text-gray-500 font-medium mb-1">Transaksi Aktif</p>
-              <h2 className="text-xl md:text-2xl font-black text-gray-800">#{Math.floor(100000 + Math.random() * 900000)}</h2>
+              <h2 className="text-xl md:text-2xl font-black text-gray-800">#{transactionId || '------'}</h2>
             </div>
             <div className="text-right flex gap-4 items-center">
               <div className="hidden md:block">
@@ -211,7 +212,7 @@ async function loadProducts() {
             cart.map(item => (
               <div key={item.id} className="flex gap-4">
                 
-                <div className="w-16 h-16 rounded-2xl bg-orange-50 flex-shrink-0 flex items-center justify-center font-bold text-xl text-orange-400">
+                <div className="w-16 h-16 rounded-2xl bg-green-50 flex-shrink-0 flex items-center justify-center font-bold text-xl text-green-400">
                   {item.name.charAt(0).toUpperCase()}
                 </div>
 
@@ -220,9 +221,9 @@ async function loadProducts() {
                   <p className="font-bold text-gray-800 text-sm mt-1">Rp {item.selling_price.toLocaleString('id-ID')}</p>
                   <div className="flex justify-between items-center mt-3">
                     <div className="flex items-center gap-3">
-                      <button onClick={() => updateQuantity(item.id, -1)} className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded-full text-gray-600 font-bold hover:bg-orange-100">-</button>
+                      <button onClick={() => updateQuantity(item.id, -1)} className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded-full text-gray-600 font-bold hover:bg-green-100">-</button>
                       <span className="font-bold text-sm w-4 text-center">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, 1)} className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded-full text-gray-600 font-bold hover:bg-orange-100">+</button>
+                      <button onClick={() => updateQuantity(item.id, 1)} className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded-full text-gray-600 font-bold hover:bg-green-100">+</button>
                     </div>
                     <button onClick={() => updateQuantity(item.id, -item.quantity)} className="text-gray-300 hover:text-red-500 transition">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -245,7 +246,7 @@ async function loadProducts() {
               <span>Rp {totalAmount.toLocaleString('id-ID')}</span>
             </div>
           </div>
-          <button onClick={() => setIsCheckoutModalOpen(true)} disabled={loading || cart.length === 0} className="w-full bg-[#EA7C2A] hover:bg-[#d66b1f] disabled:bg-gray-300 text-white font-bold py-4 rounded-2xl shadow-[0_8px_20px_-6px_rgba(234,124,42,0.5)]">
+          <button onClick={() => setIsCheckoutModalOpen(true)} disabled={loading || cart.length === 0} className="w-full bg-[#16a34a] hover:bg-[#15803d] disabled:bg-gray-300 text-white font-bold py-4 rounded-2xl shadow-[0_8px_20px_-6px_rgba(22,163,74,0.5)]">
             Selesaikan Pembayaran
           </button>
         </div>
@@ -266,9 +267,9 @@ async function loadProducts() {
 
             <div className="p-6 flex flex-col gap-6 overflow-y-auto max-h-[85vh]">
               {/* Total Tagihan */}
-              <div className="bg-orange-50 rounded-[24px] p-6 flex flex-col items-center justify-center border border-orange-100">
+              <div className="bg-green-50 rounded-[24px] p-6 flex flex-col items-center justify-center border border-green-100">
                 <p className="text-sm text-gray-500 font-medium mb-1">Total Tagihan</p>
-                <p className="text-4xl font-black text-orange-500">Rp {totalAmount.toLocaleString('id-ID')}</p>
+                <p className="text-4xl font-black text-green-500">Rp {totalAmount.toLocaleString('id-ID')}</p>
               </div>
 
               {/* Payment Methods */}
@@ -277,7 +278,7 @@ async function loadProducts() {
                   const isActive = paymentMethod === method;
                   let bgClass = 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50';
                   if (isActive) {
-                    bgClass = 'bg-orange-50 border-orange-500 text-orange-600 shadow-sm';
+                    bgClass = 'bg-green-50 border-green-500 text-green-600 shadow-sm';
                   }
                   
                   return (
@@ -306,16 +307,16 @@ async function loadProducts() {
                         type="number" 
                         value={receivedAmount}
                         onChange={(e) => setReceivedAmount(e.target.value ? Number(e.target.value) : '')}
-                        className="w-full bg-white border border-gray-200 rounded-[20px] py-4 pl-14 pr-4 text-gray-800 text-2xl font-bold focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition shadow-sm"
+                        className="w-full bg-white border border-gray-200 rounded-[20px] py-4 pl-14 pr-4 text-gray-800 text-2xl font-bold focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition shadow-sm"
                         placeholder="0"
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-4 gap-2">
-                    <button onClick={() => setReceivedAmount(totalAmount)} className="bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 border border-gray-200 text-sm py-3 rounded-[16px] font-bold text-gray-600 transition shadow-sm">Uang Pas</button>
-                    <button onClick={() => setReceivedAmount(20000)} className="bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 border border-gray-200 text-sm py-3 rounded-[16px] font-bold text-gray-600 transition shadow-sm">20.000</button>
-                    <button onClick={() => setReceivedAmount(50000)} className="bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 border border-gray-200 text-sm py-3 rounded-[16px] font-bold text-gray-600 transition shadow-sm">50.000</button>
-                    <button onClick={() => setReceivedAmount(100000)} className="bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 border border-gray-200 text-sm py-3 rounded-[16px] font-bold text-gray-600 transition shadow-sm">100.000</button>
+                    <button onClick={() => setReceivedAmount(totalAmount)} className="bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-200 border border-gray-200 text-sm py-3 rounded-[16px] font-bold text-gray-600 transition shadow-sm">Uang Pas</button>
+                    <button onClick={() => setReceivedAmount(20000)} className="bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-200 border border-gray-200 text-sm py-3 rounded-[16px] font-bold text-gray-600 transition shadow-sm">20.000</button>
+                    <button onClick={() => setReceivedAmount(50000)} className="bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-200 border border-gray-200 text-sm py-3 rounded-[16px] font-bold text-gray-600 transition shadow-sm">50.000</button>
+                    <button onClick={() => setReceivedAmount(100000)} className="bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-200 border border-gray-200 text-sm py-3 rounded-[16px] font-bold text-gray-600 transition shadow-sm">100.000</button>
                   </div>
                 </>
               ) : (
@@ -336,7 +337,7 @@ async function loadProducts() {
                       <input 
                         type="file" 
                         accept="image/*"
-                        className="w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100 transition cursor-pointer"
+                        className="w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-green-50 file:text-green-600 hover:file:bg-green-100 transition cursor-pointer"
                       />
                     </div>
                   </div>
@@ -346,7 +347,7 @@ async function loadProducts() {
               {/* Kembalian */}
               <div className="flex justify-between items-center p-5 bg-gray-50 border border-gray-100 rounded-[24px]">
                 <span className="text-gray-600 font-bold">Kembalian</span>
-                <span className="text-[#EA7C2A] font-black text-2xl">
+                <span className="text-[#16a34a] font-black text-2xl">
                   Rp {paymentMethod === 'Tunai' ? Math.max(0, (Number(receivedAmount) || 0) - totalAmount).toLocaleString('id-ID') : '0'}
                 </span>
               </div>
@@ -354,7 +355,7 @@ async function loadProducts() {
               <button 
                 onClick={handleCheckout} 
                 disabled={loading || (paymentMethod === 'Tunai' && (Number(receivedAmount) || 0) < totalAmount)}
-                className={`w-full py-4 rounded-[20px] font-bold text-white transition ${loading || (paymentMethod === 'Tunai' && (Number(receivedAmount) || 0) < totalAmount) ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#EA7C2A] hover:bg-[#d66b1f] shadow-[0_8px_20px_-6px_rgba(234,124,42,0.5)]'}`}
+                className={`w-full py-4 rounded-[20px] font-bold text-white transition ${loading || (paymentMethod === 'Tunai' && (Number(receivedAmount) || 0) < totalAmount) ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#16a34a] hover:bg-[#15803d] shadow-[0_8px_20px_-6px_rgba(22,163,74,0.5)]'}`}
               >
                 {loading ? 'Memproses...' : 'Selesaikan Transaksi'}
               </button>
