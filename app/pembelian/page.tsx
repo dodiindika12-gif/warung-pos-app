@@ -289,9 +289,6 @@ export default function PembelianPage() {
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-bold text-gray-800">Pilih Barang</h3>
-                    <Button type="button" onClick={handlePullFromShoppingList} variant="outline" className="text-primary border-primary hover:bg-primary/5 text-sm font-bold rounded-xl h-9 px-4">
-                      📥 Tarik dari Daftar Belanja
-                    </Button>
                   </div>
                   
                   {!formData.productId ? (
