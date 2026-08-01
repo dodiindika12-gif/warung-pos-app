@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation, getCategories, addCategory, updateCategory, deleteCategory, processOpname } from '../actions';
+import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation, getCategories, addCategory, updateCategory, deleteCategory, processOpname, getStockHistory } from '../actions';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { Button } from "@/components/ui/button";
 
@@ -24,6 +24,11 @@ function ProdukContent() {
   const [opnameItems, setOpnameItems] = useState<{product: Product, realStock: number}[]>([]);
   const [opnameSearchQuery, setOpnameSearchQuery] = useState('');
   const [showOpnameDropdown, setShowOpnameDropdown] = useState(false);
+  const [showOpnameScanner, setShowOpnameScanner] = useState(false);
+
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyItems, setHistoryItems] = useState<any[]>([]);
+  const [selectedProductForHistory, setSelectedProductForHistory] = useState<Product | null>(null);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -98,6 +103,15 @@ function ProdukContent() {
     }
     setOpnameSearchQuery('');
     setShowOpnameDropdown(false);
+  };
+
+  const handleOpenHistory = async (product: Product) => {
+    setSelectedProductForHistory(product);
+    setShowHistoryModal(true);
+    setLoading(true);
+    const history = await getStockHistory(product.id);
+    setHistoryItems(history);
+    setLoading(false);
   };
 
   const handleAddSubmit = async (e: React.FormEvent) => {
@@ -454,10 +468,13 @@ function ProdukContent() {
                         </td>
                         <td className="py-4 text-center">
                           <div className="flex justify-center gap-2">
-                            <button onClick={() => handleEditClick(p)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-primary/10 hover:text-primary transition">
+                            <button onClick={() => handleOpenHistory(p)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition" title="Kartu Stok">
+                              🕒
+                            </button>
+                            <button onClick={() => handleEditClick(p)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-primary/10 hover:text-primary transition" title="Edit">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             </button>
-                            <button onClick={() => handleDelete(p.id)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition">
+                            <button onClick={() => handleDelete(p.id)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition" title="Hapus">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                           </div>
@@ -515,7 +532,7 @@ function ProdukContent() {
                 <h2 className="text-2xl font-black mb-2 text-gray-800">📋 Stock Opname</h2>
                 <p className="text-gray-500 mb-6 font-medium">Sesuaikan stok fisik dengan data sistem.</p>
                 
-                <div className="relative mb-6">
+                <div className="relative z-50 mb-6">
                   <div className="flex gap-2">
                     <input 
                       type="text" 
@@ -528,6 +545,9 @@ function ProdukContent() {
                       onFocus={() => setShowOpnameDropdown(true)}
                       className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition"
                     />
+                    <button type="button" onClick={() => setShowOpnameScanner(true)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 rounded-2xl shadow-sm transition flex items-center justify-center whitespace-nowrap">
+                      📷
+                    </button>
                   </div>
                   {showOpnameDropdown && opnameSearchQuery && (
                     <div className="absolute z-10 w-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 max-h-60 overflow-y-auto">
@@ -543,6 +563,21 @@ function ProdukContent() {
                     </div>
                   )}
                 </div>
+
+                {showOpnameScanner && (
+                  <BarcodeScanner 
+                    onScanSuccess={(code) => {
+                      const product = products.find(p => p.barcode === code);
+                      if (product) {
+                        handleAddOpnameItem(product);
+                      } else {
+                        alert('Barang tidak ditemukan di database!');
+                      }
+                      setShowOpnameScanner(false);
+                    }}
+                    onClose={() => setShowOpnameScanner(false)}
+                  />
+                )}
 
                 <div className="flex-1 overflow-y-auto mb-6 bg-gray-50 rounded-2xl border border-gray-100">
                   <table className="w-full text-left">
@@ -601,6 +636,56 @@ function ProdukContent() {
                 <Button disabled={loading || opnameItems.length === 0} onClick={handleSaveOpname} className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/30">
                   {loading ? 'Menyimpan...' : 'Simpan Opname'}
                 </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Modal History */}
+          {showHistoryModal && selectedProductForHistory && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+              <div className="w-full max-w-2xl bg-white p-8 rounded-[32px] shadow-2xl relative max-h-[90vh] flex flex-col">
+                <button onClick={() => setShowHistoryModal(false)} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                <h2 className="text-2xl font-black mb-2 text-gray-800">🕒 Kartu Stok</h2>
+                <p className="text-gray-500 mb-6 font-medium">Riwayat stok untuk: <span className="font-bold text-primary">{selectedProductForHistory.name}</span></p>
+
+                <div className="flex-1 overflow-y-auto mb-2 bg-gray-50 rounded-2xl border border-gray-100">
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-100/50 sticky top-0 z-10 backdrop-blur-sm">
+                      <tr>
+                        <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Waktu</th>
+                        <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Alasan</th>
+                        <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Perubahan</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {loading ? (
+                        <tr><td colSpan={3} className="p-8 text-center text-gray-400 font-medium">Memuat riwayat...</td></tr>
+                      ) : historyItems.length === 0 ? (
+                        <tr><td colSpan={3} className="p-8 text-center text-gray-400 font-medium">Belum ada riwayat stok.</td></tr>
+                      ) : (
+                        historyItems.map((item, index) => (
+                          <tr key={index} className="bg-white">
+                            <td className="p-4 text-sm text-gray-600 font-medium">
+                              {new Date(item.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                            </td>
+                            <td className="p-4 text-sm font-bold text-gray-800">
+                              {item.reason}
+                            </td>
+                            <td className="p-4 text-center font-black">
+                              <span className={item.change_amount > 0 ? 'text-green-500' : item.change_amount < 0 ? 'text-red-500' : 'text-gray-400'}>
+                                {item.change_amount > 0 ? `+${item.change_amount}` : item.change_amount}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

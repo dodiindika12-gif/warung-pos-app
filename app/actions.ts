@@ -13,10 +13,19 @@ export async function getProducts() {
 
 // UPDATE BARCODE: Menambahkan parameter barcode ke dalam insert database
 export async function addProduct(data: { name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number }) {
-  await turso.execute({
-    sql: 'INSERT INTO products (name, barcode, category, cost_price, selling_price, stock) VALUES (?, ?, ?, ?, ?, ?)',
+  const result = await turso.execute({
+    sql: 'INSERT INTO products (name, barcode, category, cost_price, selling_price, stock) VALUES (?, ?, ?, ?, ?, ?) RETURNING id',
     args: [data.name, data.barcode, data.category, data.cost_price, data.selling_price, data.stock]
   });
+  
+  if (data.stock > 0) {
+    const newId = result.rows[0].id;
+    await turso.execute({
+      sql: 'INSERT INTO stock_history (product_id, change_amount, reason) VALUES (?, ?, ?)',
+      args: [newId, data.stock, 'Baru']
+    });
+  }
+  
   return { success: true };
 }
 
@@ -38,11 +47,31 @@ export async function deleteProduct(id: number) {
 
 export async function processOpname(items: {id: number, realStock: number}[]) {
   try {
-    const statements = items.map(item => ({
-      sql: 'UPDATE products SET stock = ? WHERE id = ?',
-      args: [item.realStock, item.id]
-    }));
-    await turso.batch(statements, 'write');
+    const statements: any[] = [];
+    
+    for (const item of items) {
+      const { rows } = await turso.execute({
+        sql: 'SELECT stock FROM products WHERE id = ?',
+        args: [item.id]
+      });
+      const oldStock = rows[0]?.stock as number || 0;
+      const diff = item.realStock - oldStock;
+      
+      if (diff !== 0) {
+        statements.push({
+          sql: 'UPDATE products SET stock = ? WHERE id = ?',
+          args: [item.realStock, item.id]
+        });
+        statements.push({
+          sql: 'INSERT INTO stock_history (product_id, change_amount, reason) VALUES (?, ?, ?)',
+          args: [item.id, diff, 'Opname']
+        });
+      }
+    }
+    
+    if (statements.length > 0) {
+      await turso.batch(statements, 'write');
+    }
     revalidatePath('/produk');
     return { success: true };
   } catch (error) {
@@ -138,6 +167,11 @@ export async function processCheckout(cart: any[], paymentMethod: string, totalA
       sql: 'UPDATE products SET stock = stock - ? WHERE id = ?',
       args: [item.quantity, item.id]
     });
+
+    await turso.execute({
+      sql: 'INSERT INTO stock_history (product_id, change_amount, reason, reference_id) VALUES (?, ?, ?, ?)',
+      args: [item.id, -item.quantity, 'Penjualan', transactionId]
+    });
   }
 
   return { success: true };
@@ -183,14 +217,21 @@ export async function processBulkPurchase(invoiceTitle: string, supplier: string
     const discountedTotalCost = Math.max(0, itemSubtotal - itemDiscount);
     const discountedCostPrice = item.quantity > 0 ? (discountedTotalCost / item.quantity) : 0;
     
-    await turso.execute({
-      sql: 'INSERT INTO purchases (product_id, quantity, cost_price, total_cost, invoice_title, supplier) VALUES (?, ?, ?, ?, ?, ?)',
+    const purResult = await turso.execute({
+      sql: 'INSERT INTO purchases (product_id, quantity, cost_price, total_cost, invoice_title, supplier) VALUES (?, ?, ?, ?, ?, ?) RETURNING id',
       args: [item.productId, item.quantity, discountedCostPrice, discountedTotalCost, invoiceTitle, supplier]
     });
+
+    const purchaseId = purResult.rows[0].id;
 
     await turso.execute({
       sql: 'UPDATE products SET stock = stock + ?, cost_price = ?, selling_price = ? WHERE id = ?',
       args: [item.quantity, discountedCostPrice, item.sellingPrice, item.productId]
+    });
+
+    await turso.execute({
+      sql: 'INSERT INTO stock_history (product_id, change_amount, reason, reference_id) VALUES (?, ?, ?, ?)',
+      args: [item.productId, item.quantity, 'Pembelian', purchaseId]
     });
   }
 
@@ -518,4 +559,12 @@ export async function removeCheckedFromShoppingList() {
   await turso.execute('DELETE FROM shopping_list WHERE is_checked = 1');
   revalidatePath('/belanja');
   return { success: true };
+}
+
+export async function getStockHistory(productId: number) {
+  const { rows } = await turso.execute({
+    sql: 'SELECT * FROM stock_history WHERE product_id = ? ORDER BY created_at DESC',
+    args: [productId]
+  });
+  return JSON.parse(JSON.stringify(rows));
 }
