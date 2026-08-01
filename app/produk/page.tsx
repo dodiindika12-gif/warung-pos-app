@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation } from '../actions';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ function ProdukContent() {
   const [showScanner, setShowScanner] = useState(false);
 
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialSearch = searchParams.get('search') || '';
   const initialFilter = searchParams.get('filter') || '';
 
@@ -118,6 +119,13 @@ function ProdukContent() {
             <p className="text-gray-500 font-medium mt-1">Kelola inventaris dan pantau stok warung Anda</p>
           </div>
           <div className="flex gap-4">
+            <Button 
+              variant="outline"
+              onClick={() => router.push('/belanja')} 
+              className="font-bold px-4 md:px-6 py-3 rounded-2xl shadow-sm transition flex items-center gap-2 text-primary border-primary hover:bg-primary/5"
+            >
+              🛒 Daftar Belanja
+            </Button>
             <Button 
               variant="outline"
               onClick={() => alert('Fitur Stock Opname segera hadir!')} 

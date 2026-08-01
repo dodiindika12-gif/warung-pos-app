@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { getProducts, processCheckout } from './actions';
 import { Button } from "@/components/ui/button";
 import BarcodeScanner from './components/BarcodeScanner';
@@ -9,6 +10,7 @@ type Product = { id: number; name: string; barcode: string; category: string; se
 type CartItem = Product & { quantity: number };
 
 export default function KasirPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -114,11 +116,18 @@ async function loadProducts() {
                 </button>
               )}
             </div>
-            <button type="button" onClick={() => setShowScanner(true)} className="shrink-0 bg-white border border-gray-100 hover:bg-gray-50 text-gray-700 font-bold px-4 rounded-full shadow-sm transition flex items-center justify-center whitespace-nowrap">
+            <button type="button" onClick={() => setShowScanner(true)} title="Scan Barcode" className="shrink-0 bg-white border border-gray-100 hover:bg-gray-50 text-gray-700 font-bold px-4 rounded-full shadow-sm transition flex items-center justify-center whitespace-nowrap">
               📷
             </button>
+            <button type="button" onClick={() => router.push('/riwayat')} title="Riwayat Transaksi" className="shrink-0 bg-white border border-gray-100 hover:bg-gray-50 text-gray-500 font-bold px-4 rounded-full shadow-sm transition flex items-center justify-center whitespace-nowrap">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </button>
           </form>
-          {outOfStockCount > 0 && <div className="text-primary font-semibold text-sm">{outOfStockCount} barang habis</div>}
+          <div className="flex justify-between items-center w-full mt-1">
+            {outOfStockCount > 0 && (
+              <div className="text-primary font-semibold text-sm">{outOfStockCount} barang habis</div>
+            )}
+          </div>
           
           {showScanner && (
             <BarcodeScanner 

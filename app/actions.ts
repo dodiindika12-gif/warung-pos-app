@@ -1,6 +1,7 @@
 'use server'
 
 import { turso } from './db';
+import { revalidatePath } from 'next/cache';
 
 // ==========================================
 // MODUL PRODUK & INVENTARIS
@@ -355,4 +356,99 @@ export async function getMonthlySales() {
     ORDER BY month DESC
   `);
   return JSON.parse(JSON.stringify(rows));
+}
+
+// --- SHOPPING LIST ACTIONS ---
+
+export async function getShoppingList() {
+  const { rows } = await turso.execute(`
+    SELECT 
+      s.id, s.product_id, s.quantity, s.is_checked, 
+      p.name, p.barcode, p.stock, p.cost_price, p.selling_price,
+      COALESCE(SUM(ti.quantity), 0) as sold_last_7_days
+    FROM shopping_list s
+    JOIN products p ON s.product_id = p.id
+    LEFT JOIN transaction_items ti ON p.id = ti.product_id 
+    LEFT JOIN transactions t ON ti.transaction_id = t.id AND t.created_at >= date('now', '-7 days')
+    GROUP BY s.id
+    ORDER BY s.id DESC
+  `);
+  return JSON.parse(JSON.stringify(rows));
+}
+
+export async function addToShoppingList(productId: number, qty: number) {
+  const existing = await turso.execute({
+    sql: 'SELECT id, quantity FROM shopping_list WHERE product_id = ?',
+    args: [productId]
+  });
+
+  if (existing.rows.length > 0) {
+    const newQty = (existing.rows[0].quantity as number) + qty;
+    await turso.execute({
+      sql: 'UPDATE shopping_list SET quantity = ?, is_checked = 0 WHERE id = ?',
+      args: [newQty, existing.rows[0].id]
+    });
+  } else {
+    await turso.execute({
+      sql: 'INSERT INTO shopping_list (product_id, quantity, is_checked) VALUES (?, ?, 0)',
+      args: [productId, qty]
+    });
+  }
+  revalidatePath('/belanja');
+  return { success: true };
+}
+
+export async function toggleShoppingListItem(id: number, isChecked: boolean) {
+  await turso.execute({
+    sql: 'UPDATE shopping_list SET is_checked = ? WHERE id = ?',
+    args: [isChecked ? 1 : 0, id]
+  });
+  revalidatePath('/belanja');
+  return { success: true };
+}
+
+export async function deleteShoppingListItem(id: number) {
+  await turso.execute({
+    sql: 'DELETE FROM shopping_list WHERE id = ?',
+    args: [id]
+  });
+  revalidatePath('/belanja');
+  return { success: true };
+}
+
+export async function clearShoppingList() {
+  await turso.execute('DELETE FROM shopping_list');
+  revalidatePath('/belanja');
+  return { success: true };
+}
+
+export async function generateShoppingList() {
+  const data = await getProductsWithRecommendation();
+  
+  for (const p of data) {
+    const estimasiKebutuhan = (p.sold_last_7_days as number) > 0 ? (p.sold_last_7_days as number) : 5;
+    if ((p.stock as number) <= estimasiKebutuhan) {
+      const qtyToBuy = estimasiKebutuhan - (p.stock as number) + 10; 
+      
+      const existing = await turso.execute({
+        sql: 'SELECT id FROM shopping_list WHERE product_id = ?',
+        args: [p.id]
+      });
+
+      if (existing.rows.length === 0) {
+        await turso.execute({
+          sql: 'INSERT INTO shopping_list (product_id, quantity, is_checked) VALUES (?, ?, 0)',
+          args: [p.id, qtyToBuy]
+        });
+      }
+    }
+  }
+  revalidatePath('/belanja');
+  return { success: true };
+}
+
+export async function removeCheckedFromShoppingList() {
+  await turso.execute('DELETE FROM shopping_list WHERE is_checked = 1');
+  revalidatePath('/belanja');
+  return { success: true };
 }

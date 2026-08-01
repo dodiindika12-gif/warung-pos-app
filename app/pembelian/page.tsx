@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getProducts, getRecentPurchases, processBulkPurchase, addProduct } from '../actions';
+import { getProducts, getRecentPurchases, processBulkPurchase, addProduct, getShoppingList, removeCheckedFromShoppingList } from '../actions';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { Button } from "@/components/ui/button";
 
@@ -98,11 +98,56 @@ export default function PembelianPage() {
     setCart(newCart);
   };
 
+  const handlePullFromShoppingList = async () => {
+    setLoading(true);
+    const list = await getShoppingList();
+    const checkedItems = list.filter((i: any) => i.is_checked === 1);
+    
+    if (checkedItems.length === 0) {
+      alert('Tidak ada barang yang sudah dicentang di Daftar Belanja.');
+      setLoading(false);
+      return;
+    }
+
+    const newCartItems: CartItem[] = [];
+    for (const item of checkedItems) {
+      const prod = products.find(p => p.id === item.product_id);
+      if (prod) {
+        newCartItems.push({
+          productId: prod.id,
+          name: prod.name,
+          barcode: prod.barcode,
+          quantity: item.quantity,
+          costPrice: item.cost_price, 
+          sellingPrice: item.selling_price,
+          oldStock: item.stock
+        });
+      }
+    }
+
+    setCart(prev => {
+      const merged = [...prev];
+      for (const newItem of newCartItems) {
+        const idx = merged.findIndex(c => c.productId === newItem.productId);
+        if (idx >= 0) {
+          merged[idx].quantity += newItem.quantity;
+        } else {
+          merged.push(newItem);
+        }
+      }
+      return merged;
+    });
+    
+    setLoading(false);
+  };
+
+
   const handleBulkSubmit = async () => {
     if (cart.length === 0) return alert('Nota kosong! Tambahkan barang terlebih dahulu.');
     
     setLoading(true);
     await processBulkPurchase(invoiceTitle, supplier, cart, Number(discount));
+    await removeCheckedFromShoppingList();
     
     // Reset Everything
     setInvoiceTitle('');
@@ -242,7 +287,12 @@ export default function PembelianPage() {
               {/* KOLOM KIRI: INPUT BARANG */}
               <div className="w-full xl:w-1/3 flex flex-col gap-4">
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                  <h3 className="text-lg font-bold text-gray-800 mb-4">Pilih Barang</h3>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-bold text-gray-800">Pilih Barang</h3>
+                    <Button type="button" onClick={handlePullFromShoppingList} variant="outline" className="text-primary border-primary hover:bg-primary/5 text-sm font-bold rounded-xl h-9 px-4">
+                      📥 Tarik dari Daftar Belanja
+                    </Button>
+                  </div>
                   
                   {!formData.productId ? (
                     <div className="relative">
