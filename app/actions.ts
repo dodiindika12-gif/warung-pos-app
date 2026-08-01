@@ -51,6 +51,58 @@ export async function getProductsWithRecommendation() {
 }
 
 // ==========================================
+// MODUL KATEGORI
+// ==========================================
+export async function getCategories() {
+  const { rows } = await turso.execute('SELECT * FROM categories ORDER BY name ASC');
+  return JSON.parse(JSON.stringify(rows));
+}
+
+export async function addCategory(name: string) {
+  try {
+    await turso.execute({
+      sql: 'INSERT INTO categories (name) VALUES (?)',
+      args: [name]
+    });
+    revalidatePath('/produk');
+    revalidatePath('/');
+    return { success: true };
+  } catch (e: any) {
+    if (e.message.includes('UNIQUE')) {
+      return { success: false, error: 'Kategori sudah ada!' };
+    }
+    return { success: false, error: e.message };
+  }
+}
+
+export async function updateCategory(id: number, name: string) {
+  try {
+    await turso.execute({
+      sql: 'UPDATE categories SET name = ? WHERE id = ?',
+      args: [name, id]
+    });
+    revalidatePath('/produk');
+    revalidatePath('/');
+    return { success: true };
+  } catch (e: any) {
+    if (e.message.includes('UNIQUE')) {
+      return { success: false, error: 'Nama kategori sudah dipakai!' };
+    }
+    return { success: false, error: e.message };
+  }
+}
+
+export async function deleteCategory(id: number) {
+  await turso.execute({
+    sql: 'DELETE FROM categories WHERE id = ?',
+    args: [id]
+  });
+  revalidatePath('/produk');
+  revalidatePath('/');
+  return { success: true };
+}
+
+// ==========================================
 // MODUL TRANSAKSI (KASIR)
 // ==========================================
 export async function processCheckout(cart: any[], paymentMethod: string, totalAmount: number) {

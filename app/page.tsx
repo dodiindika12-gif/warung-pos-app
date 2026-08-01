@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getProducts, processCheckout } from './actions';
+import { getProducts, processCheckout, getCategories } from './actions';
 import { Button } from "@/components/ui/button";
 import BarcodeScanner from './components/BarcodeScanner';
 
@@ -14,6 +14,7 @@ export default function KasirPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dbCategories, setDbCategories] = useState<{id: number, name: string}[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
@@ -32,11 +33,13 @@ export default function KasirPage() {
 
 async function loadProducts() {
     const data = await getProducts();
+    const cats = await getCategories();
     // Gunakan trik JSON ini untuk membersihkan format data dari database
     setProducts(JSON.parse(JSON.stringify(data)));
+    setDbCategories(cats);
   }
 
-  const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
+  const categories = ['All', ...dbCategories.map(c => c.name)];
   
   const filteredProducts = products.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || (p.barcode && p.barcode.includes(searchQuery));

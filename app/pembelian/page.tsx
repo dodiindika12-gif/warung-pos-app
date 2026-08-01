@@ -32,6 +32,7 @@ export default function PembelianPage() {
 
   // New Product Form State
   const [newProduct, setNewProduct] = useState({ name: '', barcode: '', category: 'Umum', cost_price: '', selling_price: '', stock: '0' });
+  const [historySearch, setHistorySearch] = useState('');
 
   useEffect(() => {
     loadData();
@@ -210,7 +211,18 @@ export default function PembelianPage() {
 
             {/* TABEL RIWAYAT KULAKAN (UTAMA) */}
             <div className="bg-white p-4 md:p-8 rounded-2xl md:rounded-[32px] shadow-sm border border-gray-100 overflow-x-auto">
-              <h2 className="text-xl font-bold text-gray-800 mb-6">Riwayat Kulakan Terakhir</h2>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h2 className="text-xl font-bold text-gray-800">Riwayat Kulakan Terakhir</h2>
+                <div className="relative w-full md:w-64">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 absolute left-3 top-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                  <input type="text" placeholder="Cari barang atau nota..." value={historySearch} onChange={e => setHistorySearch(e.target.value)} className="w-full bg-gray-50 border border-gray-100 rounded-xl py-2 pl-9 pr-9 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary transition" />
+                  {historySearch && (
+                    <button type="button" onClick={() => setHistorySearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-full w-4 h-4 flex items-center justify-center transition">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  )}
+                </div>
+              </div>
               <div className="min-w-[800px]">
                 <table className="w-full">
                   <thead>
@@ -226,7 +238,9 @@ export default function PembelianPage() {
                     {purchases.length === 0 ? (
                       <tr><td colSpan={5} className="py-8 text-center text-gray-400">Belum ada riwayat pembelian.</td></tr>
                     ) : (
-                      purchases.map(p => (
+                      purchases
+                        .filter(p => p.product_name.toLowerCase().includes(historySearch.toLowerCase()) || (p.invoice_title && p.invoice_title.toLowerCase().includes(historySearch.toLowerCase())))
+                        .map(p => (
                         <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
                           <td className="py-4">
                             <div className="text-sm font-bold text-gray-800">{new Date(p.created_at).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}</div>

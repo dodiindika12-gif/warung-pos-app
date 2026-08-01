@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation } from '../actions';
+import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation, getCategories, addCategory, updateCategory, deleteCategory } from '../actions';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { Button } from "@/components/ui/button";
 
@@ -15,6 +15,10 @@ function ProdukContent() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [showScanner, setShowScanner] = useState(false);
+  const [categories, setCategories] = useState<{id: number, name: string}[]>([]);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [editCatId, setEditCatId] = useState<number | null>(null);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -36,7 +40,33 @@ function ProdukContent() {
       cost_price: row.cost_price, selling_price: row.selling_price, stock: row.stock, sold_last_7_days: row.sold_last_7_days
     }));
     setProducts(formattedData);
+    const catData = await getCategories();
+    setCategories(catData);
   }
+
+  const handleSaveCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+    
+    if (editCatId) {
+      const res = await updateCategory(editCatId, newCatName.trim());
+      if (!res.success) alert(res.error);
+    } else {
+      const res = await addCategory(newCatName.trim());
+      if (!res.success) alert(res.error);
+    }
+    
+    setNewCatName('');
+    setEditCatId(null);
+    await loadProducts();
+  };
+
+  const handleDeleteCategory = async (id: number) => {
+    if (confirm('Yakin hapus kategori ini? Pastikan tidak ada barang yang menggunakannya.')) {
+      await deleteCategory(id);
+      await loadProducts();
+    }
+  };
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,7 +148,14 @@ function ProdukContent() {
             <h1 className="text-2xl md:text-3xl font-black text-gray-800">📦 Master Produk</h1>
             <p className="text-gray-500 font-medium mt-1">Kelola inventaris dan pantau stok warung Anda</p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-4 overflow-x-auto pb-2 md:pb-0">
+            <Button 
+              variant="outline"
+              onClick={() => setShowCategoryModal(true)} 
+              className="font-bold px-4 md:px-6 py-3 rounded-2xl shadow-sm transition flex items-center gap-2"
+            >
+              🏷️ Kelola Kategori
+            </Button>
             <Button 
               variant="outline"
               onClick={() => router.push('/belanja')} 
@@ -189,13 +226,9 @@ function ProdukContent() {
                     }
                     setFormData({...formData, category: newCat, selling_price: recommendedStr});
                   }} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition appearance-none cursor-pointer">
-                    <option value="Umum">Umum</option>
-                    <option value="Sembako">Sembako</option>
-                    <option value="Minuman">Minuman</option>
-                    <option value="Makanan Ringan">Makanan Ringan</option>
-                    <option value="Bumbu Dapur">Bumbu Dapur</option>
-                    <option value="Kebutuhan Rumah">Kebutuhan Rumah</option>
-                    <option value="Rokok">Rokok</option>
+                    {categories.map(c => (
+                      <option key={c.id} value={c.name}>{c.name}</option>
+                    ))}
                   </select>
                 </div>
                 
@@ -411,6 +444,39 @@ function ProdukContent() {
               </tbody>
             </table>
           </div>
+          
+          {/* Modal Kelola Kategori */}
+          {showCategoryModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+              <div className="w-full max-w-md bg-white p-8 rounded-[32px] shadow-2xl relative max-h-[90vh] flex flex-col">
+                <button onClick={() => {setShowCategoryModal(false); setEditCatId(null); setNewCatName('');}} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                <h2 className="text-xl font-bold mb-6 text-gray-800">🏷️ Kelola Kategori</h2>
+                
+                <form onSubmit={handleSaveCategory} className="flex gap-2 mb-6">
+                  <input type="text" value={newCatName} onChange={e => setNewCatName(e.target.value)} placeholder="Nama kategori baru..." className="flex-1 bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-3 text-sm font-semibold text-gray-800 focus:outline-none transition" />
+                  <Button type="submit" className="shrink-0 h-[46px] px-6 rounded-2xl font-bold">
+                    {editCatId ? 'Simpan' : 'Tambah'}
+                  </Button>
+                </form>
+
+                <div className="flex-1 overflow-y-auto pr-2 space-y-2">
+                  {categories.map(c => (
+                    <div key={c.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl border border-gray-100 hover:border-primary/20 transition">
+                      <span className="font-bold text-gray-800 text-sm">{c.name}</span>
+                      <div className="flex gap-2">
+                        <button onClick={() => {setEditCatId(c.id); setNewCatName(c.name);}} className="text-primary hover:text-primary/70 font-medium text-xs px-2 py-1 bg-primary/10 rounded-lg">Edit</button>
+                        <button onClick={() => handleDeleteCategory(c.id)} className="text-red-500 hover:text-red-700 font-medium text-xs px-2 py-1 bg-red-50 rounded-lg">Hapus</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           
         </div>
       </div>
