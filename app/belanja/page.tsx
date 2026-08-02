@@ -111,13 +111,20 @@ export default function BelanjaPage() {
             <h1 className="text-2xl md:text-3xl font-black text-gray-800">🛒 Daftar Belanja</h1>
             <p className="text-gray-500 font-medium mt-1">Checklist barang saat Anda berada di toko grosir</p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-4 print:hidden">
             <Button 
               variant="outline"
               onClick={handleClear} 
               className="font-bold px-6 py-3 rounded-2xl shadow-sm transition flex items-center gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
             >
               🗑️ Kosongkan
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => window.print()} 
+              className="font-bold px-6 py-3 rounded-2xl shadow-sm transition flex items-center gap-2 text-gray-700 hover:bg-gray-50 border-gray-200"
+            >
+              🖨️ Cetak PDF
             </Button>
             <Button 
               onClick={handleGenerate} 
@@ -129,7 +136,7 @@ export default function BelanjaPage() {
         </div>
 
         {/* Manual Add Item */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-6">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-6 print:hidden">
           <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Tambah Barang ke Daftar</label>
           <div className="flex gap-2 relative">
             <div className="relative w-full">
@@ -219,7 +226,7 @@ export default function BelanjaPage() {
                           <span>Jual Skrg: Rp {item.selling_price.toLocaleString('id-ID')}</span>
                         </div>
                       </div>
-                      <button onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500 p-2 transition">
+                      <button onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500 p-2 transition print:hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>
@@ -255,7 +262,7 @@ export default function BelanjaPage() {
                           <span>Harga Jual: Rp {item.selling_price.toLocaleString('id-ID')}</span>
                         </div>
                       </div>
-                      <button onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500 p-2 transition">
+                      <button onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500 p-2 transition print:hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>

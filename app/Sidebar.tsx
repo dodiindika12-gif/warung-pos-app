@@ -34,7 +34,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-full md:w-24 bg-white border-t md:border-t-0 md:border-r border-gray-100 flex flex-row md:flex-col items-center justify-around md:justify-start py-2 md:py-8 gap-0 md:gap-8 z-50 flex-shrink-0">
+    <aside className="w-full md:w-24 bg-white border-t md:border-t-0 md:border-r border-gray-100 flex flex-row md:flex-col items-center justify-around md:justify-start py-2 md:py-8 gap-0 md:gap-8 z-50 flex-shrink-0 print:hidden">
       {/* Logo */}
       <div className="hidden md:flex w-12 h-12 bg-white rounded-full items-center justify-center font-black text-xl mb-4 overflow-hidden border border-gray-100 shadow-sm p-1">
         <img src="/logo.png" alt="Logo Kios" className="w-full h-full object-contain" />
