@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation, getCategories, addCategory, updateCategory, deleteCategory, processOpname, getStockHistory } from '../actions';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { Button } from "@/components/ui/button";
+import ExcelJS from 'exceljs';
 
 type Product = { id: number; name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number; sold_last_7_days: number; created_at?: string };
 
@@ -158,30 +159,6 @@ function ProdukContent() {
     }
   };
 
-  const exportToExcel = () => {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "ID,Nama Produk,Barcode,Kategori,Harga Modal,Harga Jual,Stok,Terjual (7 Hari Terakhir)\n";
-    products.forEach((p) => {
-      const row = [
-        p.id,
-        `"${p.name.replace(/"/g, '""')}"`,
-        `"${p.barcode || ''}"`,
-        `"${p.category}"`,
-        p.cost_price,
-        p.selling_price,
-        p.stock,
-        p.sold_last_7_days
-      ].join(",");
-      csvContent += row + "\n";
-    });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Data_Produk_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   const filteredProducts = products.filter(p => {
     let match = true;
@@ -252,6 +229,102 @@ function ProdukContent() {
       default: return 0;
     }
   });
+
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Data Produk');
+
+    worksheet.columns = [
+      { header: 'Barcode', key: 'barcode', width: 20 },
+      { header: 'Nama', key: 'nama', width: 30 },
+      { header: 'Kategori', key: 'kategori', width: 20 },
+      { header: 'Harga Beli', key: 'harga_beli', width: 15 },
+      { header: 'Harga Jual', key: 'harga_jual', width: 15 },
+      { header: 'Laba', key: 'laba', width: 15 },
+      { header: 'Margin', key: 'margin', width: 10 },
+      { header: 'Stok', key: 'stok', width: 10 },
+      { header: 'AVG Terjual / Minggu', key: 'avg_terjual', width: 25 },
+      { header: 'DSI', key: 'dsi', width: 15 },
+      { header: 'Status', key: 'status', width: 20 },
+    ];
+
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4F81BD' },
+      };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    });
+
+    filteredProducts.forEach(p => {
+      const marginRp = p.selling_price - p.cost_price;
+      const marginPersen = p.cost_price > 0 ? ((marginRp / p.cost_price) * 100).toFixed(1) + '%' : '0%';
+      
+      const terjualMingguIni = p.sold_last_7_days || 0;
+      const avgDailySales = terjualMingguIni / 7;
+      const dsi = avgDailySales > 0 ? Math.round(p.stock / avgDailySales) : -1;
+      const createdDate = p.created_at ? new Date(p.created_at) : new Date();
+      const daysSinceCreated = (new Date().getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
+      const isNewProduct = daysSinceCreated <= 14;
+      
+      let dsiDisplay = dsi === -1 ? "-" : `${dsi} hari`;
+      
+      let status = '';
+      if (p.stock === 0) status = 'Habis';
+      else if (dsi === -1 && isNewProduct) status = 'Baru';
+      else if (dsi !== -1 && dsi <= 7) status = 'Kritis';
+      else if ((dsi === -1 || dsi > 30) && p.stock > 10) status = 'Overstock';
+      else status = 'Aman';
+
+      const row = worksheet.addRow({
+        barcode: p.barcode || '-',
+        nama: p.name,
+        kategori: p.category,
+        harga_beli: p.cost_price,
+        harga_jual: p.selling_price,
+        laba: marginRp,
+        margin: marginPersen,
+        stok: p.stock,
+        avg_terjual: parseFloat(avgDailySales.toFixed(1)),
+        dsi: dsiDisplay,
+        status: status
+      });
+
+      row.eachCell((cell, colNumber) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+        if ([4, 5, 6].includes(colNumber)) {
+          cell.numFmt = '"Rp"#,##0';
+        }
+        if ([8, 9].includes(colNumber)) {
+          cell.alignment = { horizontal: 'center' };
+        }
+      });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Data_Produk_${new Date().toISOString().split('T')[0]}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   return (
     <div className="flex w-full h-full p-4 md:p-8 overflow-y-auto pb-24 md:pb-8">
