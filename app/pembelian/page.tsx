@@ -20,6 +20,7 @@ export default function PembelianPage() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [showAddProductScanner, setShowAddProductScanner] = useState(false);
   
   // Invoice State
   const [invoiceTitle, setInvoiceTitle] = useState('');
@@ -173,21 +174,32 @@ export default function PembelianPage() {
       category: newProduct.category,
       cost_price: Number(newProduct.cost_price),
       selling_price: Number(newProduct.selling_price),
-      stock: Number(newProduct.stock)
+      stock: 0 // Simpan dengan stok 0 agar tidak dobel saat nota disubmit
     });
     
     await loadData();
     setShowAddProductModal(false);
     
-    // Auto select the new product
+    // Langsung masukkan ke nota (cart)
     const updatedProds = await getProducts();
     const parsed = JSON.parse(JSON.stringify(updatedProds));
     const justAdded = parsed.find((p: any) => p.name === newProduct.name);
+    
     if (justAdded) {
-      handleProductSelect(justAdded.id.toString());
+      const qty = Number(newProduct.stock);
+      setCart(prev => [...prev, {
+        productId: justAdded.id,
+        name: justAdded.name,
+        barcode: justAdded.barcode || '',
+        quantity: qty > 0 ? qty : 1,
+        costPrice: Number(newProduct.cost_price),
+        sellingPrice: Number(newProduct.selling_price),
+        oldStock: 0
+      }]);
     }
     
     setNewProduct({ name: '', barcode: '', category: 'Umum', cost_price: '', selling_price: '', stock: '0' });
+    setFormData({ productId: '', name: '', quantity: '', costPrice: '', sellingPrice: '', oldStock: 0 });
     setLoading(false);
   };
 
@@ -516,12 +528,28 @@ export default function PembelianPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Barcode (Opsional)</label>
-                  <input type="text" value={newProduct.barcode} onChange={e => setNewProduct({...newProduct, barcode: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-mono text-gray-800 focus:outline-none transition" placeholder="Ketik barcode..." />
+                  <div className="flex gap-2">
+                    <input type="text" value={newProduct.barcode} onChange={e => setNewProduct({...newProduct, barcode: e.target.value})} className="flex-1 bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-mono text-gray-800 focus:outline-none transition" placeholder="Ketik barcode..." />
+                    <button type="button" onClick={() => setShowAddProductScanner(true)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 rounded-2xl shadow-sm transition flex items-center justify-center whitespace-nowrap">
+                      📷 Scan
+                    </button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Kategori</label>
-                    <select required value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-bold text-gray-800 focus:outline-none transition appearance-none">
+                    <select required value={newProduct.category} onChange={e => {
+                      const newCat = e.target.value;
+                      let recommendedStr = newProduct.selling_price;
+                      if (newProduct.cost_price) {
+                         const costNum = Number(newProduct.cost_price);
+                         const margin = newCat === 'Sembako' ? 0.15 : 0.25;
+                         const rawPrice = costNum * (1 + margin);
+                         const rounded = Math.ceil(rawPrice / 500) * 500;
+                         recommendedStr = rounded.toString();
+                      }
+                      setNewProduct({...newProduct, category: newCat, selling_price: recommendedStr});
+                    }} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-bold text-gray-800 focus:outline-none transition appearance-none">
                       <option value="Umum">Umum</option>
                       <option value="Sembako">Sembako</option>
                       <option value="Rokok">Rokok</option>
@@ -537,7 +565,18 @@ export default function PembelianPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Harga Modal</label>
-                    <input required type="number" value={newProduct.cost_price} onChange={e => setNewProduct({...newProduct, cost_price: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-semibold text-green-600 focus:outline-none transition" placeholder="0" />
+                    <input required type="number" value={newProduct.cost_price} onChange={e => {
+                        const newCost = e.target.value;
+                        const costNum = Number(newCost);
+                        let recommendedStr = newProduct.selling_price;
+                        if (newCost && !isNaN(costNum)) {
+                          const margin = newProduct.category === 'Sembako' ? 0.15 : 0.25;
+                          const rawPrice = costNum * (1 + margin);
+                          const rounded = Math.ceil(rawPrice / 500) * 500;
+                          recommendedStr = rounded.toString();
+                        }
+                        setNewProduct({...newProduct, cost_price: newCost, selling_price: recommendedStr});
+                    }} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-semibold text-green-600 focus:outline-none transition" placeholder="0" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Harga Jual</label>
@@ -545,10 +584,32 @@ export default function PembelianPage() {
                   </div>
                 </div>
 
+                {newProduct.cost_price && newProduct.selling_price && (
+                  <div className="bg-primary/10 p-4 rounded-2xl border border-primary/10 flex items-center justify-between mt-2">
+                    <span className="text-sm font-bold text-primary">Margin Penjualan:</span>
+                    <div className="text-right">
+                      <span className="text-sm font-black text-green-600 mr-2">Rp {(Number(newProduct.selling_price) - Number(newProduct.cost_price)).toLocaleString('id-ID')}</span>
+                      <span className="text-xs font-bold bg-white text-primary px-2 py-1 rounded-lg border border-primary/20">
+                        {Number(newProduct.cost_price) > 0 ? (((Number(newProduct.selling_price) - Number(newProduct.cost_price)) / Number(newProduct.cost_price)) * 100).toFixed(1) : 0}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <Button disabled={loading} type="submit" className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/30 mt-4">
                   {loading ? 'Menyimpan...' : 'Simpan Produk Baru'}
                 </Button>
               </form>
+
+              {showAddProductScanner && (
+                <BarcodeScanner 
+                  onScanSuccess={(code) => {
+                    setNewProduct({...newProduct, barcode: code});
+                    setShowAddProductScanner(false);
+                  }}
+                  onClose={() => setShowAddProductScanner(false)}
+                />
+              )}
             </div>
           </div>
         )}
