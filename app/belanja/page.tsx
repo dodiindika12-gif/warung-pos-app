@@ -205,28 +205,30 @@ export default function BelanjaPage() {
                   <span className="w-2 h-2 rounded-full bg-red-500"></span>
                   Belum Ditemukan ({uncompleted.length})
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-1.5 print:space-y-1">
                   {uncompleted.map(item => (
-                    <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 transition hover:border-primary/30">
+                    <div key={item.id} className="bg-white p-2.5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3 transition hover:border-primary/30 print:border-gray-300 print:shadow-none print:p-2">
                       <button 
                         onClick={() => handleToggle(item.id, item.is_checked)}
-                        className="w-10 h-10 shrink-0 rounded-xl border-2 border-gray-300 hover:border-primary hover:bg-primary/5 flex items-center justify-center transition"
+                        className="w-8 h-8 shrink-0 rounded-lg border-2 border-gray-300 hover:border-primary hover:bg-primary/5 flex items-center justify-center transition print:border-black"
                       >
                       </button>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-bold text-gray-800 truncate text-lg">{item.name}</div>
-                        <div className="text-xs text-gray-500 flex flex-wrap gap-2 md:gap-3 mt-1">
-                          <span className="bg-gray-100 px-2 py-0.5 rounded-md">Stok Toko: {item.stock}</span>
-                          <span className="bg-orange-50 text-orange-600 font-bold px-2 py-0.5 rounded-md">Laku (7Hr): {item.sold_last_7_days}</span>
-                          <span className="bg-blue-50 text-blue-600 font-bold px-2 py-0.5 rounded-md">Beli: {item.quantity}</span>
+                      <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-4 print:flex-row print:items-center print:gap-2">
+                        <div className="font-bold text-gray-800 truncate text-sm md:text-base print:text-sm print:w-1/3">{item.name}</div>
+                        <div className="text-[10px] md:text-xs text-gray-500 flex flex-wrap items-center gap-1.5 md:gap-2 print:flex-nowrap print:gap-1">
+                          <span className="bg-gray-100 px-1.5 py-0.5 rounded print:bg-transparent print:p-0">Stok: {item.stock}</span>
+                          <span className="bg-orange-50 text-orange-600 font-bold px-1.5 py-0.5 rounded print:bg-transparent print:p-0">Laku(7Hr): {item.sold_last_7_days}</span>
+                          <span className="text-gray-400 hidden md:inline print:inline">|</span>
+                          <span className="bg-blue-50 text-blue-600 font-bold px-1.5 py-0.5 rounded text-[11px] md:text-xs print:bg-transparent print:p-0">Beli: {item.quantity}</span>
+                          <span className="text-gray-400 hidden xl:inline print:inline print:text-[10px]">
+                            (Beli: Rp{item.cost_price.toLocaleString('id-ID')} - Jual: Rp{item.selling_price.toLocaleString('id-ID')})
+                          </span>
                         </div>
-                        <div className="text-xs text-gray-400 flex gap-3 mt-1.5 font-medium">
-                          <span>Beli Sblm: Rp {item.cost_price.toLocaleString('id-ID')}</span>
-                          <span>•</span>
-                          <span>Jual Skrg: Rp {item.selling_price.toLocaleString('id-ID')}</span>
+                        <div className="text-[10px] text-gray-400 xl:hidden print:hidden">
+                            Rp{item.cost_price.toLocaleString('id-ID')} / Rp{item.selling_price.toLocaleString('id-ID')}
                         </div>
                       </div>
-                      <button onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500 p-2 transition print:hidden">
+                      <button onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500 p-1.5 transition print:hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>
@@ -242,27 +244,28 @@ export default function BelanjaPage() {
                   <span className="w-2 h-2 rounded-full bg-green-500"></span>
                   Sudah Di Troli ({completed.length})
                 </h3>
-                <div className="space-y-3 opacity-75">
+                <div className="space-y-1.5 opacity-75 print:space-y-1">
                   {completed.map(item => (
-                    <div key={item.id} className="bg-gray-50 p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 transition">
+                    <div key={item.id} className="bg-gray-50 p-2.5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3 transition print:border-gray-300 print:shadow-none print:p-2">
                       <button 
                         onClick={() => handleToggle(item.id, item.is_checked)}
-                        className="w-10 h-10 shrink-0 rounded-xl bg-green-500 border-2 border-green-500 text-white flex items-center justify-center transition shadow-inner shadow-black/10"
+                        className="w-8 h-8 shrink-0 rounded-lg bg-green-500 border-2 border-green-500 text-white flex items-center justify-center transition shadow-inner shadow-black/10 print:border-black print:bg-transparent print:text-black"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                       </button>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-bold text-gray-500 truncate text-lg line-through">{item.name}</div>
-                        <div className="text-xs text-gray-400 flex gap-3 mt-1">
-                          <span>Beli: {item.quantity}</span>
+                      <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-4 print:flex-row print:items-center print:gap-2">
+                        <div className="font-bold text-gray-500 truncate text-sm md:text-base line-through print:text-sm print:w-1/3">{item.name}</div>
+                        <div className="text-[10px] md:text-xs text-gray-400 flex flex-wrap items-center gap-1.5 md:gap-2 print:flex-nowrap print:gap-1">
+                          <span className="font-bold px-1.5 py-0.5 rounded print:p-0">Beli: {item.quantity}</span>
+                          <span className="text-gray-400 hidden xl:inline print:inline print:text-[10px]">
+                            (Beli: Rp{item.cost_price.toLocaleString('id-ID')} - Jual: Rp{item.selling_price.toLocaleString('id-ID')})
+                          </span>
                         </div>
-                        <div className="text-[10px] text-gray-400 flex gap-2 mt-1 opacity-75 font-medium">
-                          <span>Harga Beli: Rp {item.cost_price.toLocaleString('id-ID')}</span>
-                          <span>|</span>
-                          <span>Harga Jual: Rp {item.selling_price.toLocaleString('id-ID')}</span>
+                        <div className="text-[10px] text-gray-400 xl:hidden print:hidden line-through">
+                            Rp{item.cost_price.toLocaleString('id-ID')} / Rp{item.selling_price.toLocaleString('id-ID')}
                         </div>
                       </div>
-                      <button onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500 p-2 transition print:hidden">
+                      <button onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500 p-1.5 transition print:hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>
