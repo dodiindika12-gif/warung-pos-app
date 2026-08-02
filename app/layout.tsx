@@ -1,6 +1,7 @@
 import './globals.css';
 import Link from 'next/link';
 import Sidebar from './Sidebar';
+import PinWrapper from './PinWrapper';
 import { DM_Sans, Outfit } from "next/font/google";
 import { cn } from "@/lib/utils";
 
@@ -20,17 +21,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-white flex h-[100dvh] font-sans text-gray-800 overflow-hidden">
         
         {/* Kontainer Utama Aplikasi (Melayang & Rounded) */}
-        <div className="flex flex-col-reverse md:flex-row w-full h-full bg-white overflow-hidden relative">
-          
-          {/* Sidebar Navigasi Dinamis */}
-          <Sidebar />
+        <PinWrapper>
+          <div className="flex flex-col-reverse md:flex-row w-full h-full bg-white overflow-hidden relative">
+            
+            {/* Sidebar Navigasi Dinamis */}
+            <Sidebar />
 
-          {/* Konten Utama (Berubah per halaman) */}
-          <main className="flex-1 flex overflow-hidden bg-[#FAFAFA]">
-            {children}
-          </main>
+            {/* Konten Utama (Berubah per halaman) */}
+            <main className="flex-1 flex overflow-hidden bg-[#FAFAFA]">
+              {children}
+            </main>
 
-        </div>
+          </div>
+        </PinWrapper>
       </body>
     </html>
   );
