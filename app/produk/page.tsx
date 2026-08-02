@@ -6,7 +6,7 @@ import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation
 import BarcodeScanner from '../components/BarcodeScanner';
 import { Button } from "@/components/ui/button";
 
-type Product = { id: number; name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number; sold_last_7_days: number };
+type Product = { id: number; name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number; sold_last_7_days: number; created_at?: string };
 
 function ProdukContent() {
   const [products, setProducts] = useState<Product[]>([]);
