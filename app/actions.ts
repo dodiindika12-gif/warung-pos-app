@@ -477,7 +477,7 @@ export async function getShoppingList() {
   const { rows } = await turso.execute(`
     SELECT 
       s.id, s.product_id, s.quantity, s.is_checked, 
-      p.name, p.barcode, p.stock, p.cost_price, p.selling_price,
+      p.name, p.barcode, p.stock, p.cost_price, p.selling_price, p.category,
       COALESCE(SUM(ti.quantity), 0) as sold_last_7_days
     FROM shopping_list s
     JOIN products p ON s.product_id = p.id

@@ -25,6 +25,7 @@ type ShoppingItem = {
   cost_price: number;
   selling_price: number;
   sold_last_7_days: number;
+  category?: string;
 };
 
 type Product = {
@@ -98,8 +99,17 @@ export default function BelanjaPage() {
     }
   }
 
-  const uncompleted = items.filter(i => i.is_checked === 0);
-  const completed = items.filter(i => i.is_checked === 1);
+  const groupedItems = items.reduce((acc, item) => {
+    const cat = item.category || 'Lainnya';
+    if (!acc[cat]) {
+      acc[cat] = { uncompleted: [], completed: [] };
+    }
+    if (item.is_checked === 0) acc[cat].uncompleted.push(item);
+    else acc[cat].completed.push(item);
+    return acc;
+  }, {} as Record<string, { uncompleted: ShoppingItem[], completed: ShoppingItem[] }>);
+
+  const categories = Object.keys(groupedItems).sort();
 
   return (
     <div className="flex w-full h-full p-4 md:p-8 overflow-y-auto pb-32 md:pb-8">
@@ -196,84 +206,99 @@ export default function BelanjaPage() {
 
         {/* Shopping List Items */}
         {items.length > 0 && (
-          <div className="space-y-6">
-            
-            {/* Uncompleted Items */}
-            {uncompleted.length > 0 && (
-              <div>
-                <h3 className="text-sm font-bold text-red-500 uppercase tracking-wider mb-3 ml-2 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                  Belum Ditemukan ({uncompleted.length})
-                </h3>
-                <div className="space-y-1.5 print:space-y-1">
-                  {uncompleted.map(item => (
-                    <div key={item.id} className="bg-white p-2.5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3 transition hover:border-primary/30 print:border-gray-300 print:shadow-none print:p-2">
-                      <button 
-                        onClick={() => handleToggle(item.id, item.is_checked)}
-                        className="w-8 h-8 shrink-0 rounded-lg border-2 border-gray-300 hover:border-primary hover:bg-primary/5 flex items-center justify-center transition print:border-black"
-                      >
-                      </button>
-                      <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-4 print:flex-row print:items-center print:gap-2">
-                        <div className="font-bold text-gray-800 truncate text-sm md:text-base print:text-sm print:w-1/3">{item.name}</div>
-                        <div className="text-[10px] md:text-xs text-gray-500 flex flex-wrap items-center gap-1.5 md:gap-2 print:flex-nowrap print:gap-1">
-                          <span className="bg-gray-100 px-1.5 py-0.5 rounded print:bg-transparent print:p-0">Stok: {item.stock}</span>
-                          <span className="bg-orange-50 text-orange-600 font-bold px-1.5 py-0.5 rounded print:bg-transparent print:p-0">Laku(7Hr): {item.sold_last_7_days}</span>
-                          <span className="text-gray-400 hidden md:inline print:inline">|</span>
-                          <span className="bg-blue-50 text-blue-600 font-bold px-1.5 py-0.5 rounded text-[11px] md:text-xs print:bg-transparent print:p-0">Beli: {item.quantity}</span>
-                          <span className="text-gray-400 hidden xl:inline print:inline print:text-[10px]">
-                            (Beli: Rp{item.cost_price.toLocaleString('id-ID')} - Jual: Rp{item.selling_price.toLocaleString('id-ID')})
-                          </span>
-                        </div>
-                        <div className="text-[10px] text-gray-400 xl:hidden print:hidden">
-                            Rp{item.cost_price.toLocaleString('id-ID')} / Rp{item.selling_price.toLocaleString('id-ID')}
+          <div className="space-y-8 print:space-y-4">
+            {categories.map(cat => {
+              const uncompleted = groupedItems[cat].uncompleted;
+              const completed = groupedItems[cat].completed;
+              
+              if (uncompleted.length === 0 && completed.length === 0) return null;
+
+              return (
+                <div key={cat} className="mb-6 print:mb-4">
+                  <h2 className="text-lg font-black text-gray-800 mb-3 border-b-2 border-gray-100 pb-2 print:text-sm print:mb-2 print:pb-1">
+                    📁 {cat}
+                  </h2>
+                  
+                  <div className="space-y-4 print:space-y-2">
+                    {/* Uncompleted Items */}
+                    {uncompleted.length > 0 && (
+                      <div>
+                        <h3 className="text-xs font-bold text-red-500 uppercase tracking-wider mb-2 ml-2 flex items-center gap-1.5 print:text-[10px] print:mb-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                          Belum Ditemukan ({uncompleted.length})
+                        </h3>
+                        <div className="grid grid-cols-1 gap-1.5 print:grid-cols-2 print:gap-1">
+                          {uncompleted.map(item => (
+                            <div key={item.id} className="bg-white p-2.5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3 transition hover:border-primary/30 print:border-gray-300 print:shadow-none print:p-1.5 print:rounded-lg">
+                              <button 
+                                onClick={() => handleToggle(item.id, item.is_checked)}
+                                className="w-8 h-8 shrink-0 rounded-lg border-2 border-gray-300 hover:border-primary hover:bg-primary/5 flex items-center justify-center transition print:border-black print:w-5 print:h-5 print:rounded-md print:border-solid print:border-[1px]"
+                              >
+                              </button>
+                              <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-4 print:flex-row print:items-center print:gap-1.5">
+                                <div className="font-bold text-gray-800 truncate text-sm md:text-base print:text-[9px] print:w-1/3 leading-tight">{item.name}</div>
+                                <div className="text-[10px] md:text-xs text-gray-500 flex flex-wrap items-center gap-1.5 md:gap-2 print:flex-nowrap print:gap-1 print:text-[8px] leading-tight">
+                                  <span className="bg-gray-100 px-1.5 py-0.5 rounded print:bg-transparent print:p-0">Stok: {item.stock}</span>
+                                  <span className="bg-orange-50 text-orange-600 font-bold px-1.5 py-0.5 rounded print:bg-transparent print:p-0">Laku: {item.sold_last_7_days}</span>
+                                  <span className="text-gray-400 hidden md:inline print:inline">|</span>
+                                  <span className="bg-blue-50 text-blue-600 font-bold px-1.5 py-0.5 rounded text-[11px] md:text-xs print:bg-transparent print:p-0 print:text-[8px]">Beli: {item.quantity}</span>
+                                  <span className="text-gray-400 hidden xl:inline print:inline print:text-[8px]">
+                                    (Rp{item.cost_price.toLocaleString('id-ID')} - Rp{item.selling_price.toLocaleString('id-ID')})
+                                  </span>
+                                </div>
+                                <div className="text-[10px] text-gray-400 xl:hidden print:hidden">
+                                    Rp{item.cost_price.toLocaleString('id-ID')} / Rp{item.selling_price.toLocaleString('id-ID')}
+                                </div>
+                              </div>
+                              <button onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500 p-1.5 transition print:hidden">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              </button>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                      <button onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500 p-1.5 transition print:hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Completed Items */}
-            {completed.length > 0 && (
-              <div>
-                <h3 className="text-sm font-bold text-green-500 uppercase tracking-wider mb-3 ml-2 mt-8 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  Sudah Di Troli ({completed.length})
-                </h3>
-                <div className="space-y-1.5 opacity-75 print:space-y-1">
-                  {completed.map(item => (
-                    <div key={item.id} className="bg-gray-50 p-2.5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3 transition print:border-gray-300 print:shadow-none print:p-2">
-                      <button 
-                        onClick={() => handleToggle(item.id, item.is_checked)}
-                        className="w-8 h-8 shrink-0 rounded-lg bg-green-500 border-2 border-green-500 text-white flex items-center justify-center transition shadow-inner shadow-black/10 print:border-black print:bg-transparent print:text-black"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                      </button>
-                      <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-4 print:flex-row print:items-center print:gap-2">
-                        <div className="font-bold text-gray-500 truncate text-sm md:text-base line-through print:text-sm print:w-1/3">{item.name}</div>
-                        <div className="text-[10px] md:text-xs text-gray-400 flex flex-wrap items-center gap-1.5 md:gap-2 print:flex-nowrap print:gap-1">
-                          <span className="font-bold px-1.5 py-0.5 rounded print:p-0">Beli: {item.quantity}</span>
-                          <span className="text-gray-400 hidden xl:inline print:inline print:text-[10px]">
-                            (Beli: Rp{item.cost_price.toLocaleString('id-ID')} - Jual: Rp{item.selling_price.toLocaleString('id-ID')})
-                          </span>
-                        </div>
-                        <div className="text-[10px] text-gray-400 xl:hidden print:hidden line-through">
-                            Rp{item.cost_price.toLocaleString('id-ID')} / Rp{item.selling_price.toLocaleString('id-ID')}
+                    )}
+                    
+                    {/* Completed Items */}
+                    {completed.length > 0 && (
+                      <div className={uncompleted.length > 0 ? "mt-4 print:mt-2" : ""}>
+                        <h3 className="text-xs font-bold text-green-500 uppercase tracking-wider mb-2 ml-2 flex items-center gap-1.5 print:text-[10px] print:mb-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                          Sudah Di Troli ({completed.length})
+                        </h3>
+                        <div className="grid grid-cols-1 gap-1.5 opacity-75 print:grid-cols-2 print:gap-1">
+                          {completed.map(item => (
+                            <div key={item.id} className="bg-gray-50 p-2.5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3 transition print:border-gray-300 print:shadow-none print:p-1.5 print:rounded-lg">
+                              <button 
+                                onClick={() => handleToggle(item.id, item.is_checked)}
+                                className="w-8 h-8 shrink-0 rounded-lg bg-green-500 border-2 border-green-500 text-white flex items-center justify-center transition shadow-inner shadow-black/10 print:border-black print:bg-transparent print:text-black print:w-5 print:h-5 print:rounded-md print:border-solid print:border-[1px]"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 print:h-3 print:w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                              </button>
+                              <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-4 print:flex-row print:items-center print:gap-1.5">
+                                <div className="font-bold text-gray-500 truncate text-sm md:text-base line-through print:text-[9px] print:w-1/3 leading-tight">{item.name}</div>
+                                <div className="text-[10px] md:text-xs text-gray-400 flex flex-wrap items-center gap-1.5 md:gap-2 print:flex-nowrap print:gap-1 print:text-[8px] leading-tight">
+                                  <span className="font-bold px-1.5 py-0.5 rounded print:p-0">Beli: {item.quantity}</span>
+                                  <span className="text-gray-400 hidden xl:inline print:inline print:text-[8px]">
+                                    (Rp{item.cost_price.toLocaleString('id-ID')} - Rp{item.selling_price.toLocaleString('id-ID')})
+                                  </span>
+                                </div>
+                                <div className="text-[10px] text-gray-400 xl:hidden print:hidden line-through">
+                                    Rp{item.cost_price.toLocaleString('id-ID')} / Rp{item.selling_price.toLocaleString('id-ID')}
+                                </div>
+                              </div>
+                              <button onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500 p-1.5 transition print:hidden">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              </button>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                      <button onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500 p-1.5 transition print:hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                      </button>
-                    </div>
-                  ))}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-
+              );
+            })}
           </div>
         )}
 
