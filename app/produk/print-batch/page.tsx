@@ -35,7 +35,6 @@ export default async function PrintBatch({ searchParams }: { searchParams: Promi
             <p className="text-sm text-gray-500">{products.length} label siap dicetak (Kertas A4)</p>
           </div>
           <button 
-            onClick={() => {/* will be handled by auto-print in BarcodeComponent, or they can press Ctrl+P. But actually BarcodeComponent auto-prints on mount. Wait, multiple BarcodeComponents will trigger multiple window.print(). We should only trigger one. */}}
             className="bg-primary text-primary-foreground px-6 py-2 rounded-xl font-bold shadow-lg shadow-primary/20"
             style={{pointerEvents: 'none', opacity: 0.5}}
           >
