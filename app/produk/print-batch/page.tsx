@@ -42,16 +42,8 @@ export default async function PrintBatch({ searchParams }: { searchParams: Promi
           </button>
         </div>
 
-        {/* Grid Label */}
-        <div 
-          className="grid gap-[2mm] justify-center print:block" 
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, 3cm)',
-            gridAutoRows: '2.5cm',
-            // On print, we rely on the grid to wrap naturally inside the 210mm width
-          }}
-        >
+        {/* Flex Layout Label */}
+        <div className="flex flex-wrap gap-[2mm] justify-start content-start">
           {products.map((product, index) => {
             const barcodeValue = (product.barcode as string) || (product.id as string).toString();
             const productName = product.name as string;
@@ -119,15 +111,6 @@ export default async function PrintBatch({ searchParams }: { searchParams: Promi
             background: white;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-          }
-          /* Override grid for print to ensure exact dimensions */
-          .grid {
-            display: grid !important;
-            grid-template-columns: repeat(auto-fill, 3cm) !important;
-            grid-auto-rows: 2.5cm !important;
-            gap: 2mm !important;
-            justify-content: start !important;
-            align-content: start !important;
           }
         }
       `}} />
