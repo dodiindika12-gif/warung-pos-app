@@ -45,7 +45,7 @@ export default async function PrintBatch({ searchParams }: { searchParams: Promi
         </div>
 
         {/* Flex Layout Label */}
-        <div className="flex flex-wrap gap-[2mm] justify-start content-start">
+        <div className="flex flex-wrap gap-[0px] justify-start content-start">
           {products.map((product, index) => {
             const barcodeValue = (product.barcode as string) || (product.id as string).toString();
             const productName = product.name as string;
