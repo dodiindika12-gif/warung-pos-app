@@ -1,5 +1,6 @@
 import { turso } from '@/app/db';
-import BarcodeComponent from '../print-pricecard/BarcodeComponent';
+import PriceCardTemplate from '../PriceCardTemplate';
+import AutoPrintTrigger from '../AutoPrintTrigger';
 
 export default async function PrintBatch({ searchParams }: { searchParams: Promise<{ ids?: string }> }) {
   const { ids } = await searchParams;
@@ -23,6 +24,7 @@ export default async function PrintBatch({ searchParams }: { searchParams: Promi
 
   return (
     <div className="min-h-screen bg-gray-100 print:bg-white print:min-h-0">
+      <AutoPrintTrigger active={true} />
       
       {/* Container A4 Page */}
       <div className="bg-white mx-auto p-4 md:p-8 md:my-8 shadow-xl print:shadow-none print:m-0 print:p-0"
@@ -50,52 +52,12 @@ export default async function PrintBatch({ searchParams }: { searchParams: Promi
             const price = product.selling_price as number;
 
             return (
-              <div 
+              <PriceCardTemplate 
                 key={`${product.id}-${index}`}
-                className="bg-white flex flex-col items-center justify-between overflow-hidden" 
-                style={{
-                  width: '3cm',
-                  height: '2.5cm',
-                  padding: '2px 4px',
-                  boxSizing: 'border-box',
-                  border: '1px dashed #e2e8f0', // dashed border helps with cutting
-                  pageBreakInside: 'avoid'
-                }}
-              >
-                {/* Nama Barang (Hitam) */}
-                <div style={{
-                  color: 'black',
-                  fontSize: '9px',
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                  lineHeight: '1.1',
-                  width: '100%',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                }}>
-                  {productName}
-                </div>
-                
-                {/* Barcode (Biru, Miring diatur di komponen) */}
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyItems: 'center', width: '100%', overflow: 'hidden' }}>
-                   <BarcodeComponent value={barcodeValue} autoPrint={index === products.length - 1} />
-                </div>
-                
-                {/* Harga (Merah) */}
-                <div style={{
-                  color: 'red',
-                  fontSize: '11px',
-                  fontWeight: '900',
-                  textAlign: 'center',
-                  lineHeight: '1',
-                  marginBottom: '2px'
-                }}>
-                  Rp {price.toLocaleString('id-ID')}
-                </div>
-              </div>
+                productName={productName} 
+                price={price} 
+                barcodeValue={barcodeValue} 
+              />
             );
           })}
         </div>
