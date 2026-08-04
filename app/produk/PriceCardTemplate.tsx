@@ -11,8 +11,8 @@ export default function PriceCardTemplate({ productName, price, barcodeValue }: 
     <div 
       className="bg-white flex flex-col overflow-hidden relative" 
       style={{
-        width: '4cm',
-        height: '2cm',
+        width: '5cm',
+        height: '2.5cm',
         boxSizing: 'border-box',
         border: '1px dashed #e2e8f0', // dashed border helps with cutting
         pageBreakInside: 'avoid',

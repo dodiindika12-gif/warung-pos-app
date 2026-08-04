@@ -35,7 +35,7 @@ export default async function PrintPricecard({ searchParams }: { searchParams: P
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
           @page {
-            size: 4cm 2cm;
+            size: 5cm 2.5cm;
             margin: 0;
           }
           body {
