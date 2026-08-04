@@ -65,9 +65,9 @@ export default function PriceCardTemplate({ productName, price, barcodeValue }: 
         }}>
           <span style={{ 
             color: 'red', 
-            fontSize: '18px', 
+            fontSize: '26px', 
             fontWeight: '900', 
-            letterSpacing: '-0.5px' 
+            letterSpacing: '-1px' 
           }}>
             Rp {price.toLocaleString('id-ID')}
           </span>
