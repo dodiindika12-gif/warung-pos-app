@@ -31,6 +31,7 @@ function ProdukContent() {
   const [historyItems, setHistoryItems] = useState<any[]>([]);
   const [openActionId, setOpenActionId] = useState<number | null>(null);
   const [selectedProductForHistory, setSelectedProductForHistory] = useState<Product | null>(null);
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -544,6 +545,20 @@ function ProdukContent() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b-2 border-gray-100 text-xs uppercase tracking-wider text-gray-400">
+                  <th className="pb-4 font-bold w-10 text-center">
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-300 cursor-pointer"
+                      checked={filteredProducts.length > 0 && selectedProducts.length === filteredProducts.length}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedProducts(filteredProducts.map(p => p.id));
+                        } else {
+                          setSelectedProducts([]);
+                        }
+                      }}
+                    />
+                  </th>
                   <th className="pb-4 font-bold">Produk</th>
                   <th className="pb-4 font-bold">Harga Beli</th>
                   <th className="pb-4 font-bold">Harga Jual</th>
@@ -554,7 +569,7 @@ function ProdukContent() {
               <tbody>
                 {filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-gray-400 font-medium">Tidak ada produk ditemukan.</td>
+                    <td colSpan={6} className="py-8 text-center text-gray-400 font-medium">Tidak ada produk ditemukan.</td>
                   </tr>
                 ) : (
                   filteredProducts.map((p) => {
@@ -598,6 +613,20 @@ function ProdukContent() {
 
                     return (
                       <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                        <td className="py-4 text-center">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-300 cursor-pointer"
+                            checked={selectedProducts.includes(p.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedProducts([...selectedProducts, p.id]);
+                              } else {
+                                setSelectedProducts(selectedProducts.filter(id => id !== p.id));
+                              }
+                            }}
+                          />
+                        </td>
                         <td className="py-4">
                           <div className="font-bold text-gray-800 text-sm">{p.name}</div>
                           <div className="text-xs text-gray-400 font-medium mt-1">
@@ -638,6 +667,9 @@ function ProdukContent() {
                                 <div className="absolute right-8 top-1/2 -translate-y-1/2 w-36 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-50 focus:outline-none z-50 overflow-hidden">
                                   <button onClick={() => { setOpenActionId(null); handleOpenHistory(p); }} className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2 transition-colors">
                                     <span>🕒</span> Kartu Stok
+                                  </button>
+                                  <button onClick={() => { setOpenActionId(null); window.open(`/produk/print-pricecard?id=${p.id}`, '_blank'); }} className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2 transition-colors">
+                                    <span>🖨️</span> Cetak Label
                                   </button>
                                   <button onClick={() => { setOpenActionId(null); handleEditClick(p); }} className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-primary/10 hover:text-primary flex items-center gap-2 transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -859,6 +891,32 @@ function ProdukContent() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Floating Action Bar untuk Cetak Massal */}
+          {selectedProducts.length > 0 && (
+            <div className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-4 rounded-full shadow-2xl flex items-center gap-6 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300">
+              <div className="font-semibold text-sm">
+                <span className="bg-primary/20 text-white px-2 py-1 rounded-md mr-2">{selectedProducts.length}</span>
+                Produk Terpilih
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => setSelectedProducts([])}
+                  variant="ghost" 
+                  className="text-gray-300 hover:text-white hover:bg-white/10 rounded-xl text-xs font-semibold h-9"
+                >
+                  Batal
+                </Button>
+                <Button 
+                  onClick={() => window.open(`/produk/print-batch?ids=${selectedProducts.join(',')}`, '_blank')}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2 h-9"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                  Cetak {selectedProducts.length} Label A4
+                </Button>
               </div>
             </div>
           )}
