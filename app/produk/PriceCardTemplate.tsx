@@ -49,7 +49,7 @@ export default function PriceCardTemplate({ productName, price, barcodeValue }: 
         }}>
           <span style={{ 
             color: 'black', 
-            fontSize: '9px', 
+            fontSize: '11px', 
             fontWeight: '600', 
             textAlign: 'center', 
             whiteSpace: 'nowrap', 
