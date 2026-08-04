@@ -493,13 +493,9 @@ function ProdukContent() {
                   <option value="all">Semua Produk</option>
                   <option value="low_stock">⚠️ Stok Menipis</option>
                   <option disabled>--- Kategori ---</option>
-                  <option value="Umum">Umum</option>
-                  <option value="Sembako">Sembako</option>
-                  <option value="Minuman">Minuman</option>
-                  <option value="Makanan Ringan">Makanan Ringan</option>
-                  <option value="Bumbu Dapur">Bumbu Dapur</option>
-                  <option value="Kebutuhan Rumah">Kebutuhan Rumah</option>
-                  <option value="Rokok">Rokok</option>
+                  {categories.map(c => (
+                    <option key={`filter-cat-${c.id}`} value={c.name}>{c.name}</option>
+                  ))}
                 </select>
                 <select
                   value={sortType}

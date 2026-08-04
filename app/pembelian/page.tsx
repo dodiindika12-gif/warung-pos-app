@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getProducts, getRecentPurchases, processBulkPurchase, addProduct, getShoppingList, removeCheckedFromShoppingList } from '../actions';
+import { getProducts, getRecentPurchases, processBulkPurchase, addProduct, getShoppingList, removeCheckedFromShoppingList, getCategories } from '../actions';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { Button } from "@/components/ui/button";
 
@@ -15,6 +15,7 @@ export default function PembelianPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<{id: number, name: string}[]>([]);
 
   // Modal State
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
@@ -44,8 +45,10 @@ export default function PembelianPage() {
   async function loadData() {
     const prods = await getProducts();
     const purchs = await getRecentPurchases();
+    const cats = await getCategories();
     setProducts(JSON.parse(JSON.stringify(prods)));
     setPurchases(JSON.parse(JSON.stringify(purchs)));
+    setCategories(cats);
   }
 
   const handleProductSelect = (id: string) => {
@@ -549,12 +552,10 @@ export default function PembelianPage() {
                          recommendedStr = rounded.toString();
                       }
                       setNewProduct({...newProduct, category: newCat, selling_price: recommendedStr});
-                    }} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-bold text-gray-800 focus:outline-none transition appearance-none">
-                      <option value="Umum">Umum</option>
-                      <option value="Sembako">Sembako</option>
-                      <option value="Rokok">Rokok</option>
-                      <option value="Minuman">Minuman</option>
-                      <option value="Snack">Snack</option>
+                    }} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-bold text-gray-800 focus:outline-none transition appearance-none cursor-pointer">
+                      {categories.map(c => (
+                        <option key={`pembelian-cat-${c.id}`} value={c.name}>{c.name}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
