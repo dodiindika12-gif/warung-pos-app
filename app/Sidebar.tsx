@@ -120,15 +120,16 @@ export default function Sidebar() {
 
                 <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 text-sm text-gray-700">
                   <p className="mb-2"><strong>2. API Read Database</strong></p>
-                  <p className="mb-2">Gunakan endpoint ini untuk membaca data dari tabel spesifik.</p>
+                  <p className="mb-2">Gunakan endpoint ini untuk membaca data dari tabel spesifik, atau kosongkan parameter <code>table</code> untuk membaca <strong>seluruh data</strong> dari semua tabel.</p>
                   
                   <div className="bg-gray-800 text-gray-100 rounded-lg p-3 font-mono text-xs overflow-x-auto mb-3">
+                    GET /api/read?pin=2021<br/>
                     GET /api/read?table=[nama_tabel]&pin=2021
                   </div>
                   
-                  <p className="font-semibold text-gray-800 mt-3 mb-1">Contoh Penggunaan (Fetch):</p>
+                  <p className="font-semibold text-gray-800 mt-3 mb-1">Contoh Penggunaan (Semua Data):</p>
                   <pre className="bg-gray-800 text-gray-100 rounded-lg p-3 font-mono text-xs overflow-x-auto">
-{`fetch('/api/read?table=products&pin=2021')
+{`fetch('/api/read?pin=2021')
   .then(res => res.json())
   .then(data => console.log(data));`}
                   </pre>
