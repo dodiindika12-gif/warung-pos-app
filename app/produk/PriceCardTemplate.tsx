@@ -1,4 +1,10 @@
 import React from 'react';
+import { Poppins } from 'next/font/google';
+
+const poppins = Poppins({
+  weight: ['400', '600', '900'],
+  subsets: ['latin'],
+});
 
 interface PriceCardTemplateProps {
   productName: string;
@@ -9,14 +15,13 @@ interface PriceCardTemplateProps {
 export default function PriceCardTemplate({ productName, price, barcodeValue }: PriceCardTemplateProps) {
   return (
     <div 
-      className="bg-white flex flex-col overflow-hidden relative" 
+      className={`bg-white flex flex-col overflow-hidden relative ${poppins.className}`} 
       style={{
         width: '5cm',
         height: '2.5cm',
         boxSizing: 'border-box',
         border: '1px dashed #e2e8f0', // dashed border helps with cutting
-        pageBreakInside: 'avoid',
-        fontFamily: 'sans-serif'
+        pageBreakInside: 'avoid'
       }}
     >
       {/* Background layer */}
