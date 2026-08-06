@@ -2,6 +2,7 @@
 
 import { turso } from './db';
 import { revalidatePath } from 'next/cache';
+import { sendWebhook } from '@/lib/hermes';
 
 // ==========================================
 // MODUL PRODUK & INVENTARIS
@@ -173,6 +174,25 @@ export async function processCheckout(cart: any[], paymentMethod: string, totalA
       args: [item.id, -item.quantity, 'Penjualan', transactionId]
     });
   }
+
+  // Notifikasi Webhook dengan Raw JSON
+  const webhookPayload = {
+    event: 'new_sale',
+    transaction_id: transactionId,
+    payment_method: paymentMethod,
+    total_amount: totalAmount,
+    timestamp: new Date().toISOString(),
+    items: cart.map(item => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.selling_price,
+      subtotal: item.quantity * item.selling_price
+    }))
+  };
+  
+  // Memanggil webhook
+  sendWebhook(webhookPayload).catch(console.error);
 
   return { success: true };
 }
