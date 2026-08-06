@@ -1,6 +1,21 @@
 import crypto from 'crypto';
 
-export async function sendWebhook(data: any) {
+function formatRupiah(angka: number) {
+  return 'Rp ' + angka.toLocaleString('id-ID');
+}
+
+function formatWaktu(timestamp: string) {
+  return new Date(timestamp).toLocaleString('id-ID', {
+    timeZone: 'Asia/Makassar',
+    day: '2-digit',
+    month: '2-digit', 
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }) + ' WITA';
+}
+
+export async function sendWebhook(transaction: any) {
   const url = process.env.HERMES_WEBHOOK_URL;
   const token = process.env.HERMES_API_TOKEN;
   const secret = process.env.HERMES_WEBHOOK_SECRET;
@@ -12,7 +27,28 @@ export async function sendWebhook(data: any) {
   }
 
   try {
-    const bodyString = JSON.stringify(data);
+    let message = `✅ *Penjualan Baru!*\n`;
+    message += `🆔 #${transaction.transaction_id}\n`;
+    message += `💳 ${transaction.payment_method}\n`;
+    message += `🕐 ${formatWaktu(transaction.timestamp)}\n\n`;
+    message += `*Barang terjual:*\n`;
+    message += `\`\`\`\n`;
+    message += `Item                Qty    Harga\n`;
+    message += `─────────────────── ────── ──────────\n`;
+    
+    transaction.items.forEach((item: any) => {
+      // Membatasi panjang nama item agar tabel tidak berantakan
+      const safeName = item.name.length > 19 ? item.name.substring(0, 16) + '...' : item.name;
+      message += `${safeName.padEnd(20)} ${(item.quantity+'x').padEnd(6)} ${formatRupiah(item.subtotal)}\n`;
+    });
+    
+    message += `\`\`\`\n\n`;
+    message += `💰 *Total: ${formatRupiah(transaction.total_amount)}*`;
+
+    // Gabungkan pesan yang diformat ke dalam payload asli
+    const payload = { ...transaction, message };
+    const bodyString = JSON.stringify(payload);
+    
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
