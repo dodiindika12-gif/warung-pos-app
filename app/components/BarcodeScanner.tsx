@@ -26,16 +26,20 @@ export default function BarcodeScanner({ onScanSuccess, onClose }: BarcodeScanne
             Html5QrcodeSupportedFormats.CODE_128,
             Html5QrcodeSupportedFormats.CODE_39,
             Html5QrcodeSupportedFormats.QR_CODE
-          ]
+          ],
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+          }
         });
         scannerRef.current = html5QrCode;
 
         await html5QrCode.start(
-          { facingMode: "environment" },
+          { facingMode: { exact: "environment" } },
           {
-            fps: 10,
-            qrbox: { width: 250, height: 150 },
+            fps: 30,
+            qrbox: { width: 300, height: 150 },
             aspectRatio: 1.0,
+            disableFlip: false,
           },
           (decodedText) => {
             if (isMounted) {
@@ -45,7 +49,15 @@ export default function BarcodeScanner({ onScanSuccess, onClose }: BarcodeScanne
           (errorMessage) => {
             // Ignore frequent frame errors
           }
-        );
+        ).catch(async (err) => {
+            // Fallback to regular environment if exact fails
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 30, qrbox: { width: 300, height: 150 }, aspectRatio: 1.0, disableFlip: false },
+                (decodedText) => { if (isMounted) onScanSuccess(decodedText); },
+                () => {}
+            );
+        });
       } catch (err) {
         if (isMounted) {
           console.error("Camera error:", err);

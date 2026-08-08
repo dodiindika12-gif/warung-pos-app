@@ -192,7 +192,7 @@ async function loadProducts() {
                     {p.name.charAt(0).toUpperCase()}
                   </div>
                   
-                  <h3 className="font-bold text-gray-800 mb-1 line-clamp-1">{p.name}</h3>
+                  <h3 className="font-bold text-gray-800 mb-1">{p.name}</h3>
                   <p className="text-green-600 font-bold text-lg mb-3">Rp {p.selling_price.toLocaleString('id-ID')}</p>
                   <p className="text-xs text-gray-400 font-medium">Stok: {p.stock}</p>
                 </div>
@@ -205,7 +205,7 @@ async function loadProducts() {
                     {p.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 flex flex-col justify-between py-1">
-                    <h3 className="font-bold text-gray-800 text-lg line-clamp-1">{p.name}</h3>
+                    <h3 className="font-bold text-gray-800 text-lg">{p.name}</h3>
                     <p className="text-sm text-gray-400 font-medium mt-1">{p.category} &bull; Stok: {p.stock}</p>
                   </div>
                   <div className="text-right">

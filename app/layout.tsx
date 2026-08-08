@@ -14,6 +14,13 @@ export const metadata = {
   description: 'Aplikasi POS dengan UI Modern',
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" className={cn("font-sans", dmSans.variable, outfitHeading.variable)}>
