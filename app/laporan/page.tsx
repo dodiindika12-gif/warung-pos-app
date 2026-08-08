@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getDashboardStats, getChartData } from '../actions';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import LoadingAnimation from '../components/LoadingAnimation';
 
 export default function LaporanPage() {
   const [stats, setStats] = useState<any>(null);
@@ -41,7 +42,7 @@ export default function LaporanPage() {
     setEndDate(end.toISOString().split('T')[0]);
   };
 
-  if (!stats && loading) return <div className="p-8 text-gray-500 font-medium flex items-center justify-center h-full">Memuat Dashboard Analytics...</div>;
+  if (!stats && loading) return <LoadingAnimation text="Memuat Dashboard Analytics..." />;
   if (!stats) return <div className="p-8 text-gray-500">Tidak ada data.</div>;
 
   const grossProfit = stats.revenue - stats.cogs;
@@ -76,52 +77,60 @@ export default function LaporanPage() {
             <p className="text-gray-500 font-medium mt-1">Laporan finansial komprehensif</p>
           </div>
           <div className="flex flex-col items-end gap-3 w-full md:w-auto">
-            <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="flex items-center justify-between w-full md:w-auto gap-2">
               <input 
                 type="date" 
                 value={startDate} 
                 onChange={e => setStartDate(e.target.value)}
-                className="bg-gray-50 border border-gray-200 focus:border-primary rounded-xl p-3 text-sm font-bold text-gray-700 w-full md:w-auto"
+                className="bg-gray-50 border border-gray-200 focus:border-primary rounded-xl p-2 md:p-3 text-xs md:text-sm font-bold text-gray-700 w-[calc(50%-10px)] md:w-auto text-center"
               />
-              <span className="text-gray-400 font-bold">-</span>
+              <span className="text-gray-400 font-bold shrink-0">-</span>
               <input 
                 type="date" 
                 value={endDate} 
                 onChange={e => setEndDate(e.target.value)}
-                className="bg-gray-50 border border-gray-200 focus:border-primary rounded-xl p-3 text-sm font-bold text-gray-700 w-full md:w-auto"
+                className="bg-gray-50 border border-gray-200 focus:border-primary rounded-xl p-2 md:p-3 text-xs md:text-sm font-bold text-gray-700 w-[calc(50%-10px)] md:w-auto text-center"
               />
             </div>
-            <div className="flex gap-2">
-              <button onClick={() => setQuickFilter(0)} className="text-xs font-bold text-gray-500 hover:text-primary transition bg-gray-50 hover:bg-primary/10 px-3 py-1.5 rounded-lg">Hari Ini</button>
-              <button onClick={() => setQuickFilter(7)} className="text-xs font-bold text-gray-500 hover:text-primary transition bg-gray-50 hover:bg-primary/10 px-3 py-1.5 rounded-lg">7 Hari</button>
-              <button onClick={() => setQuickFilter(30)} className="text-xs font-bold text-gray-500 hover:text-primary transition bg-gray-50 hover:bg-primary/10 px-3 py-1.5 rounded-lg">30 Hari</button>
+            <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+              <button onClick={() => setQuickFilter(0)} className="flex-1 md:flex-none text-xs font-bold text-gray-500 hover:text-primary transition bg-gray-50 hover:bg-primary/10 px-3 py-2 md:py-1.5 rounded-lg whitespace-nowrap text-center">Hari Ini</button>
+              <button onClick={() => setQuickFilter(7)} className="flex-1 md:flex-none text-xs font-bold text-gray-500 hover:text-primary transition bg-gray-50 hover:bg-primary/10 px-3 py-2 md:py-1.5 rounded-lg whitespace-nowrap text-center">7 Hari</button>
+              <button onClick={() => setQuickFilter(30)} className="flex-1 md:flex-none text-xs font-bold text-gray-500 hover:text-primary transition bg-gray-50 hover:bg-primary/10 px-3 py-2 md:py-1.5 rounded-lg whitespace-nowrap text-center">30 Hari</button>
             </div>
           </div>
         </div>
 
         {/* Kartu Ringkasan (Top Row) */}
-        <div className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 transition-opacity duration-200 ${loading ? 'opacity-50' : 'opacity-100'}`}>
-          <div className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 flex flex-col justify-center relative overflow-hidden">
-            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-primary/10 rounded-full opacity-50 z-0"></div>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-wide relative z-10">Penjualan Kotor</p>
-            <p className="text-3xl font-black text-green-600 mt-2 relative z-10">Rp {stats.revenue.toLocaleString('id-ID')}</p>
+        <div className={`grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4 transition-opacity duration-200 ${loading ? 'opacity-50' : 'opacity-100'}`}>
+          <div className="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 md:w-24 md:h-24 bg-primary/10 rounded-full opacity-50 z-0"></div>
+            <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wide relative z-10">Penjualan Kotor</p>
+            <p className="text-lg md:text-2xl font-black text-green-600 mt-1 relative z-10 truncate">Rp {stats.revenue.toLocaleString('id-ID')}</p>
           </div>
           
-          <div className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 flex flex-col justify-center relative overflow-hidden">
-            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-primary/10 rounded-full opacity-50 z-0"></div>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-wide relative z-10">Total Transaksi</p>
-            <p className="text-3xl font-black text-gray-800 mt-2 relative z-10">{stats.totalTrx} <span className="text-lg font-medium text-gray-400">Trx</span></p>
+          <div className="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 md:w-24 md:h-24 bg-primary/10 rounded-full opacity-50 z-0"></div>
+            <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wide relative z-10">Total Transaksi</p>
+            <p className="text-lg md:text-2xl font-black text-gray-800 mt-1 relative z-10">{stats.totalTrx} <span className="text-[10px] md:text-sm font-medium text-gray-400">Trx</span></p>
           </div>
 
-          <div className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 flex flex-col justify-center relative overflow-hidden">
-            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-red-50 rounded-full opacity-50 z-0"></div>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-wide relative z-10">Pengeluaran & HPP</p>
-            <p className="text-2xl font-bold text-green-600 mt-2 relative z-10">Rp {(stats.cogs + stats.expense).toLocaleString('id-ID')}</p>
+          <div className="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 md:w-24 md:h-24 bg-red-50 rounded-full opacity-50 z-0"></div>
+            <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wide relative z-10">Pengeluaran & HPP</p>
+            <p className="text-base md:text-xl font-bold text-red-500 mt-1 relative z-10 truncate">Rp {(stats.cogs + stats.expense).toLocaleString('id-ID')}</p>
           </div>
 
-          <div className={`p-6 rounded-[32px] shadow-sm border flex flex-col justify-center relative overflow-hidden ${netProfit >= 0 ? 'bg-primary border-primary/20 text-white' : 'bg-red-500 border-red-600 text-white'}`}>
-            <p className="text-sm font-bold opacity-80 uppercase tracking-wide relative z-10">Keuntungan Bersih</p>
-            <p className="text-3xl font-black mt-2 relative z-10">Rp {netProfit.toLocaleString('id-ID')}</p>
+          <div className="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 md:w-24 md:h-24 bg-blue-50 rounded-full opacity-50 z-0"></div>
+            <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wide relative z-10">Margin Bersih</p>
+            <p className="text-lg md:text-2xl font-black text-blue-600 mt-1 relative z-10">
+              {stats.revenue > 0 ? ((netProfit / stats.revenue) * 100).toFixed(1) : '0'}%
+            </p>
+          </div>
+
+          <div className={`col-span-2 xl:col-span-1 p-4 md:p-5 rounded-2xl md:rounded-3xl shadow-sm border flex flex-col justify-center relative overflow-hidden ${netProfit >= 0 ? 'bg-primary border-primary/20 text-white' : 'bg-red-500 border-red-600 text-white'}`}>
+            <p className="text-[10px] md:text-xs font-bold opacity-80 uppercase tracking-wide relative z-10">Keuntungan Bersih</p>
+            <p className="text-xl md:text-2xl font-black mt-1 relative z-10 truncate">Rp {netProfit.toLocaleString('id-ID')}</p>
           </div>
         </div>
 
@@ -129,7 +138,7 @@ export default function LaporanPage() {
         <div className={`bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 transition-opacity duration-200 ${loading ? 'opacity-50' : 'opacity-100'}`}>
           <h2 className="text-xl font-bold text-gray-800 mb-6">Tren Penjualan vs Keuntungan</h2>
           {chartData.length > 0 ? (
-            <div className="h-[350px] w-full mt-4">
+            <div className="h-[250px] md:h-[350px] w-full mt-4 -ml-4 md:ml-0">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
@@ -172,7 +181,7 @@ export default function LaporanPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-8">
           
           {/* Top 10 Terlaris */}
           <div className={`bg-white p-6 md:p-8 rounded-2xl md:rounded-[32px] shadow-sm border border-gray-100 h-fit transition-opacity duration-200 ${loading ? 'opacity-50' : 'opacity-100'}`}>
@@ -227,6 +236,40 @@ export default function LaporanPage() {
           </div>
 
         </div>
+
+        {/* Laporan Kulakan (Pembelian) */}
+        <div className={`bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-gray-100 transition-opacity duration-200 ${loading ? 'opacity-50' : 'opacity-100'}`}>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">📦 Laporan Kulakan (Pembelian)</h2>
+              <p className="text-sm font-medium text-gray-500 mt-1">Daftar nota belanja stok barang</p>
+            </div>
+            <div className="text-left md:text-right w-full md:w-auto bg-orange-50 p-4 rounded-2xl border border-orange-100">
+              <p className="text-xs font-bold text-orange-600/70 uppercase tracking-wide">Total Periode Ini</p>
+              <p className="text-2xl font-black text-orange-600 mt-1">Rp {stats.purchases.toLocaleString('id-ID')}</p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            {stats.purchaseInvoices && stats.purchaseInvoices.length === 0 ? (
+              <p className="text-gray-400 font-medium text-sm text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">Tidak ada data pembelian di rentang tanggal ini.</p>
+            ) : (
+              stats.purchaseInvoices?.map((inv: any, idx: number) => (
+                <div key={idx} className="flex flex-col md:flex-row justify-between md:items-center bg-white hover:bg-gray-50 p-5 rounded-2xl border border-gray-100 transition gap-4">
+                  <div>
+                    <h3 className="font-black text-gray-800 text-lg">{inv.supplier}</h3>
+                    <p className="text-sm font-medium text-gray-500 mt-1">{new Date(inv.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                  </div>
+                  <div className="text-left md:text-right pt-3 border-t border-gray-100 md:border-0 md:pt-0">
+                    <p className="text-xs font-bold text-gray-400 mb-1 hidden md:block">Total Nota</p>
+                    <p className="font-black text-green-600 text-xl">Rp {inv.total.toLocaleString('id-ID')}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );

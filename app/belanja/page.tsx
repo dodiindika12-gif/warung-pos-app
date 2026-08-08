@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import BarcodeScanner from '../components/BarcodeScanner';
+import LoadingAnimation from '../components/LoadingAnimation';
 import { 
   getShoppingList, 
   generateShoppingList, 
@@ -192,7 +193,7 @@ export default function BelanjaPage() {
 
         {/* Loading State */}
         {loading && items.length === 0 && (
-          <div className="text-center py-10 text-gray-400 font-medium">Memuat daftar belanja...</div>
+          <LoadingAnimation text="Memuat daftar belanja..." />
         )}
 
         {/* Empty State */}

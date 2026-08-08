@@ -149,12 +149,29 @@ async function loadProducts() {
           )}
         </div>
 
-        <div className="flex gap-4 mb-8 overflow-x-auto pb-2 shrink-0 min-h-[48px] items-center">
+        {/* Filter Kategori Desktop */}
+        <div className="hidden md:flex gap-4 mb-8 overflow-x-auto pb-2 shrink-0 min-h-[48px] items-center">
           {categories.map(cat => (
             <button key={cat} onClick={() => setActiveCategory(cat)} className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition shadow-sm border ${activeCategory === cat ? 'bg-primary/10 text-primary border-primary/20' : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'}`}>
               <span>{cat === 'All' ? '📦' : '🏷️'}</span> {cat}
             </button>
           ))}
+        </div>
+
+        {/* Filter Kategori Mobile */}
+        <div className="md:hidden mb-6 relative">
+          <select
+            value={activeCategory}
+            onChange={(e) => setActiveCategory(e.target.value)}
+            className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition font-bold text-gray-700 shadow-sm appearance-none cursor-pointer"
+          >
+            {categories.map(cat => (
+              <option key={`mob-cat-${cat}`} value={cat}>{cat === 'All' ? '📦 Semua Produk' : `🏷️ ${cat}`}</option>
+            ))}
+          </select>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          </div>
         </div>
 
         <div className="flex justify-between items-end mb-6">
@@ -186,12 +203,7 @@ async function loadProducts() {
           {filteredProducts.map(p => {
             if (viewMode === 'grid') {
               return (
-                <div key={p.id} onClick={() => p.stock > 0 && addToCart(p)} className={`bg-white rounded-[32px] p-6 flex flex-col items-center text-center shadow-sm border border-gray-100 transition ${p.stock > 0 ? 'cursor-pointer hover:shadow-md hover:border-primary/20' : 'opacity-50 cursor-not-allowed'}`}>
-                  {/* Inisial Placeholder Murni */}
-                  <div className="w-32 h-32 rounded-full bg-gray-50 border-4 border-white shadow-inner mb-4 flex items-center justify-center text-4xl overflow-hidden text-primary/80 font-black">
-                    {p.name.charAt(0).toUpperCase()}
-                  </div>
-                  
+                <div key={p.id} onClick={() => p.stock > 0 && addToCart(p)} className={`bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm border border-gray-100 transition ${p.stock > 0 ? 'cursor-pointer hover:shadow-md hover:border-primary/20' : 'opacity-50 cursor-not-allowed'}`}>
                   <h3 className="font-bold text-gray-800 mb-1">{p.name}</h3>
                   <p className="text-green-600 font-bold text-lg mb-3">Rp {p.selling_price.toLocaleString('id-ID')}</p>
                   <p className="text-xs text-gray-400 font-medium">Stok: {p.stock}</p>
@@ -199,11 +211,7 @@ async function loadProducts() {
               );
             } else {
               return (
-                <div key={p.id} onClick={() => p.stock > 0 && addToCart(p)} className={`bg-white rounded-[24px] p-4 flex items-center shadow-sm border border-gray-100 transition ${p.stock > 0 ? 'cursor-pointer hover:shadow-md hover:border-primary/20' : 'opacity-50 cursor-not-allowed'}`}>
-                  {/* Inisial Kiri */}
-                  <div className="w-20 h-20 rounded-2xl bg-gray-50 flex-shrink-0 flex items-center justify-center font-black text-3xl text-primary/80 mr-5 shadow-inner">
-                    {p.name.charAt(0).toUpperCase()}
-                  </div>
+                <div key={p.id} onClick={() => p.stock > 0 && addToCart(p)} className={`bg-white rounded-2xl p-5 flex items-center shadow-sm border border-gray-100 transition ${p.stock > 0 ? 'cursor-pointer hover:shadow-md hover:border-primary/20' : 'opacity-50 cursor-not-allowed'}`}>
                   <div className="flex-1 flex flex-col justify-between py-1">
                     <h3 className="font-bold text-gray-800 text-lg">{p.name}</h3>
                     <p className="text-sm text-gray-400 font-medium mt-1">{p.category} &bull; Stok: {p.stock}</p>
@@ -242,12 +250,7 @@ async function loadProducts() {
             <p className="text-center text-gray-400 text-sm mt-10">Belum ada barang di keranjang.</p>
           ) : (
             cart.map(item => (
-              <div key={item.id} className="flex gap-4">
-                
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex-shrink-0 flex items-center justify-center font-bold text-xl text-primary/80">
-                  {item.name.charAt(0).toUpperCase()}
-                </div>
-
+              <div key={item.id} className="flex gap-4 items-center">
                 <div className="flex-1">
                   <h4 className="font-bold text-gray-800 text-sm">{item.name}</h4>
                   <p className="font-bold text-green-600 text-sm mt-1">Rp {item.selling_price.toLocaleString('id-ID')}</p>

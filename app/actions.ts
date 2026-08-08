@@ -46,6 +46,18 @@ export async function deleteProduct(id: number) {
   return { success: true };
 }
 
+export async function bulkUpdateCategory(ids: number[], category: string) {
+  if (ids.length === 0) return { success: true };
+  const placeholders = ids.map(() => '?').join(',');
+  await turso.execute({
+    sql: `UPDATE products SET category = ? WHERE id IN (${placeholders})`,
+    args: [category, ...ids]
+  });
+  revalidatePath('/produk');
+  revalidatePath('/');
+  return { success: true };
+}
+
 export async function processOpname(items: {id: number, realStock: number}[]) {
   try {
     const statements: any[] = [];
@@ -214,7 +226,6 @@ export async function getRecentPurchases() {
     FROM purchases p
     JOIN products pr ON p.product_id = pr.id
     ORDER BY p.created_at DESC
-    LIMIT 20
   `);
   return JSON.parse(JSON.stringify(rows));
 }
@@ -306,6 +317,18 @@ export async function getDashboardStats(startDate?: string, endDate?: string) {
     SELECT name, stock, barcode FROM products WHERE stock <= 5 ORDER BY stock ASC LIMIT 10
   `);
 
+  const wholesalePurchases = await turso.execute(`
+    SELECT SUM(total_cost) as total_purchases FROM purchases WHERE ${dateFilter}
+  `);
+
+  const purchaseInvoices = await turso.execute(`
+    SELECT invoice_title, supplier, date(created_at) as date, SUM(total_cost) as total
+    FROM purchases
+    WHERE ${dateFilter}
+    GROUP BY invoice_title, supplier, date(created_at)
+    ORDER BY date DESC
+  `);
+
   return {
     revenue: Number(stats.rows[0]?.total_revenue || 0),
     tunai: Number(stats.rows[0]?.total_tunai || 0),
@@ -313,6 +336,10 @@ export async function getDashboardStats(startDate?: string, endDate?: string) {
     totalTrx: Number(stats.rows[0]?.total_trx || 0),
     expense: Number(expenses.rows[0]?.total_expense || 0),
     cogs: Number(cogs.rows[0]?.total_cogs || 0),
+    purchases: Number(wholesalePurchases.rows[0]?.total_purchases || 0),
+    purchaseInvoices: purchaseInvoices.rows.map(row => ({
+      invoice_title: row.invoice_title, supplier: row.supplier, date: row.date, total: Number(row.total)
+    })),
     bestSellers: bestSellers.rows.map(row => ({
       name: row.name, total_sold: Number(row.total_sold)
     })),

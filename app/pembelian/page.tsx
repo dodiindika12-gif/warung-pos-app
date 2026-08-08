@@ -9,6 +9,14 @@ import { Button } from "@/components/ui/button";
 type Product = { id: number; name: string; stock: number; cost_price: number; selling_price: number; barcode: string; category: string };
 type Purchase = { id: number; product_name: string; quantity: number; cost_price: number; total_cost: number; created_at: string; invoice_title?: string; supplier?: string };
 type CartItem = { productId: number; name: string; barcode: string; quantity: number; costPrice: number; sellingPrice: number; oldStock: number };
+type GroupedPurchase = {
+  key: string;
+  invoice_title: string;
+  supplier: string;
+  created_at: string;
+  total_cost: number;
+  items: Purchase[];
+};
 
 export default function PembelianPage() {
   const router = useRouter();
@@ -22,6 +30,7 @@ export default function PembelianPage() {
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [showAddProductScanner, setShowAddProductScanner] = useState(false);
+  const [selectedPurchaseGroup, setSelectedPurchaseGroup] = useState<GroupedPurchase | null>(null);
   
   // Invoice State
   const [invoiceTitle, setInvoiceTitle] = useState('');
@@ -37,6 +46,10 @@ export default function PembelianPage() {
   // New Product Form State
   const [newProduct, setNewProduct] = useState({ name: '', barcode: '', category: 'Umum', cost_price: '', selling_price: '', stock: '0' });
   const [historySearch, setHistorySearch] = useState('');
+
+  // Pagination for history
+  const [historyPage, setHistoryPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     loadData();
@@ -209,6 +222,45 @@ export default function PembelianPage() {
   const cartSubtotal = cart.reduce((sum, item) => sum + (item.quantity * item.costPrice), 0);
   const cartGrandTotal = Math.max(0, cartSubtotal - Number(discount));
 
+  // Group purchases by invoice/supplier/date
+  const groupedPurchases = purchases.reduce((acc, p) => {
+    const dateStr = new Date(p.created_at).toLocaleDateString('id-ID');
+    const inv = p.invoice_title || 'Tanpa Nota';
+    const sup = p.supplier || 'Toko tidak diketahui';
+    const key = `${inv}-${sup}-${dateStr}`;
+
+    const existing = acc.find(g => g.key === key);
+    if (existing) {
+      existing.items.push(p);
+      existing.total_cost += p.total_cost;
+    } else {
+      acc.push({
+        key,
+        invoice_title: inv,
+        supplier: sup,
+        created_at: p.created_at,
+        total_cost: p.total_cost,
+        items: [p]
+      });
+    }
+    return acc;
+  }, [] as GroupedPurchase[]);
+
+  const filteredPurchases = groupedPurchases.filter(g => 
+    g.invoice_title.toLowerCase().includes(historySearch.toLowerCase()) || 
+    g.supplier.toLowerCase().includes(historySearch.toLowerCase()) ||
+    g.items.some(item => item.product_name.toLowerCase().includes(historySearch.toLowerCase()))
+  );
+  
+  const totalHistoryPages = Math.ceil(filteredPurchases.length / itemsPerPage);
+  const startHistoryIndex = (historyPage - 1) * itemsPerPage;
+  const currentHistoryPurchases = filteredPurchases.slice(startHistoryIndex, startHistoryIndex + itemsPerPage);
+
+  // If search changes, reset page (simplified approach)
+  useEffect(() => {
+    setHistoryPage(1);
+  }, [historySearch]);
+
   return (
     <div className="flex flex-col w-full h-full relative">
       <div className="p-4 md:p-8 overflow-y-auto pb-24 flex-1">
@@ -249,43 +301,96 @@ export default function PembelianPage() {
                   )}
                 </div>
               </div>
-              <div className="min-w-[800px]">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b-2 border-gray-100">
-                      <th className="text-left py-4 text-sm font-bold text-gray-400 uppercase tracking-wider">Waktu & Nota</th>
-                      <th className="text-left py-4 text-sm font-bold text-gray-400 uppercase tracking-wider">Barang</th>
-                      <th className="text-center py-4 text-sm font-bold text-gray-400 uppercase tracking-wider">Qty Tambahan</th>
-                      <th className="text-right py-4 text-sm font-bold text-gray-400 uppercase tracking-wider">Harga Beli Baru</th>
-                      <th className="text-right py-4 text-sm font-bold text-gray-400 uppercase tracking-wider">Total Biaya</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {purchases.length === 0 ? (
-                      <tr><td colSpan={5} className="py-8 text-center text-gray-400">Belum ada riwayat pembelian.</td></tr>
-                    ) : (
-                      purchases
-                        .filter(p => p.product_name.toLowerCase().includes(historySearch.toLowerCase()) || (p.invoice_title && p.invoice_title.toLowerCase().includes(historySearch.toLowerCase())))
-                        .map(p => (
-                        <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
-                          <td className="py-4">
-                            <div className="text-sm font-bold text-gray-800">{new Date(p.created_at).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}</div>
-                            <div className="text-xs text-gray-400 font-medium mt-1">
-                              {p.invoice_title || 'Tanpa Nota'} - {p.supplier || 'Toko tidak diketahui'}
-                            </div>
-                          </td>
-                          <td className="py-4 font-bold text-gray-800 text-sm">{p.product_name}</td>
-                          <td className="py-4 text-center">
-                            <span className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-lg text-sm border border-primary/20">+{p.quantity}</span>
-                          </td>
-                          <td className="py-4 text-right text-green-600 font-medium text-sm">Rp {p.cost_price.toLocaleString('id-ID')}</td>
-                          <td className="py-4 text-right font-black text-green-600 text-sm">Rp {p.total_cost.toLocaleString('id-ID')}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                {/* DESKTOP VIEW (TABLE) */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full min-w-[800px]">
+                    <thead>
+                      <tr className="border-b-2 border-gray-100">
+                        <th className="text-left py-4 text-sm font-bold text-gray-400 uppercase tracking-wider">Waktu</th>
+                        <th className="text-left py-4 text-sm font-bold text-gray-400 uppercase tracking-wider">Supplier</th>
+                        <th className="text-center py-4 text-sm font-bold text-gray-400 uppercase tracking-wider">Jumlah Jenis Barang</th>
+                        <th className="text-right py-4 text-sm font-bold text-gray-400 uppercase tracking-wider">Total Biaya Nota</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentHistoryPurchases.length === 0 ? (
+                        <tr><td colSpan={4} className="py-8 text-center text-gray-400">Belum ada riwayat pembelian yang sesuai.</td></tr>
+                      ) : (
+                        currentHistoryPurchases.map(g => (
+                          <tr key={g.key} onClick={() => setSelectedPurchaseGroup(g)} className="border-b border-gray-50 hover:bg-primary/10/50 cursor-pointer transition">
+                            <td className="py-4">
+                              <div className="text-sm font-bold text-gray-800">{new Date(g.created_at).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}</div>
+                              <div className="text-xs text-gray-400 font-medium mt-1">
+                                {new Date(g.created_at).toLocaleTimeString('id-ID')}
+                              </div>
+                            </td>
+                            <td className="py-4 font-bold text-gray-800 text-sm">{g.supplier}</td>
+                            <td className="py-4 text-center">
+                              <span className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-lg text-sm border border-primary/20">{g.items.length} Barang</span>
+                            </td>
+                            <td className="py-4 text-right font-black text-green-600 text-sm">Rp {g.total_cost.toLocaleString('id-ID')}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {/* MOBILE VIEW (CARDS) */}
+                <div className="flex flex-col gap-4 md:hidden">
+                  {currentHistoryPurchases.length === 0 ? (
+                    <div className="py-8 text-center text-gray-400">Belum ada riwayat pembelian yang sesuai.</div>
+                  ) : (
+                    currentHistoryPurchases.map(g => (
+                      <div key={g.key} onClick={() => setSelectedPurchaseGroup(g)} className="bg-white border border-gray-100 shadow-sm p-5 rounded-2xl flex flex-col gap-3 cursor-pointer active:scale-[0.98] transition">
+                        <div className="flex justify-between items-start border-b border-gray-100 pb-3">
+                          <div>
+                            <span className="font-black text-gray-800 text-lg block">{g.supplier}</span>
+                          </div>
+                          <span className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-lg text-sm border border-primary/20">{g.items.length} Barang</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-gray-500 font-medium">Waktu</span>
+                          <span className="font-bold text-gray-700 text-right">{new Date(g.created_at).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})} <span className="text-gray-400">{new Date(g.created_at).toLocaleTimeString('id-ID')}</span></span>
+                        </div>
+                        <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-1">
+                          <span className="text-gray-500 font-bold text-sm">Total Biaya Nota</span>
+                          <span className="font-black text-green-600 text-xl">Rp {g.total_cost.toLocaleString('id-ID')}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
+
+              {/* Pagination Controls */}
+              {filteredPurchases.length > 0 && (
+                <div className="flex flex-col md:flex-row justify-between items-center mt-6 pt-4 border-t border-gray-100 gap-4">
+                  <p className="text-sm text-gray-500 text-center md:text-left">
+                    Menampilkan <span className="font-bold text-gray-700">{startHistoryIndex + 1}</span> - <span className="font-bold text-gray-700">{Math.min(startHistoryIndex + itemsPerPage, filteredPurchases.length)}</span> dari <span className="font-bold text-gray-700">{filteredPurchases.length}</span> transaksi
+                  </p>
+                  <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+                    <button 
+                      onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                      disabled={historyPage === 1}
+                      className="px-4 py-2 text-sm font-bold bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition flex-1 md:flex-none text-center"
+                    >
+                      Sebelumnya
+                    </button>
+                    <div className="text-sm font-bold text-gray-800 bg-gray-100 px-4 py-2 rounded-xl whitespace-nowrap">
+                      {historyPage} / {totalHistoryPages}
+                    </div>
+                    <button 
+                      onClick={() => setHistoryPage(p => Math.min(totalHistoryPages, p + 1))}
+                      disabled={historyPage === totalHistoryPages}
+                      className="px-4 py-2 text-sm font-bold bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition flex-1 md:flex-none text-center"
+                    >
+                      Selanjutnya
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -614,6 +719,55 @@ export default function PembelianPage() {
             </div>
           </div>
         )}
+
+        {/* MODAL DETAIL KULAKAN (SUPPLIER / NOTA) */}
+        {selectedPurchaseGroup && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-white text-gray-800 rounded-[32px] w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-100">
+              <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-100 bg-gray-50">
+                <div>
+                  <h2 className="text-xl md:text-2xl font-black text-gray-800">{selectedPurchaseGroup.supplier}</h2>
+                  <p className="text-sm font-medium text-gray-500 mt-1">{new Date(selectedPurchaseGroup.created_at).toLocaleDateString('id-ID')}</p>
+                </div>
+                <button onClick={() => setSelectedPurchaseGroup(null)} className="text-gray-400 hover:text-gray-800 transition bg-white hover:bg-gray-100 w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              
+              <div className="p-6 md:p-8 overflow-y-auto max-h-[60vh] bg-[#FAFAFA]">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Daftar Barang yang Dibeli</h3>
+                <div className="flex flex-col gap-3">
+                  {selectedPurchaseGroup.items.map((item, idx) => (
+                    <div key={idx} className="bg-white border border-gray-100 shadow-sm p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-800 text-base mb-1">{item.product_name}</h4>
+                        <div className="flex items-center gap-3 text-sm">
+                          <span className="bg-primary/10 text-primary font-bold px-2 py-1 rounded-md">+{item.quantity} Pcs</span>
+                          <span className="text-gray-500">@ Rp {item.cost_price.toLocaleString('id-ID')}</span>
+                        </div>
+                      </div>
+                      <div className="text-right w-full md:w-auto pt-3 border-t border-gray-100 md:border-0 md:pt-0">
+                        <p className="text-xs text-gray-400 font-bold mb-1 hidden md:block">Subtotal</p>
+                        <p className="font-black text-green-600 text-lg">Rp {item.total_cost.toLocaleString('id-ID')}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="bg-white p-6 md:p-8 border-t border-gray-100 flex justify-between items-center shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]">
+                <div>
+                  <p className="text-sm text-gray-500 font-bold mb-1">Total Biaya Keseluruhan</p>
+                  <p className="text-gray-400 text-xs">{selectedPurchaseGroup.items.length} jenis barang</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-black text-green-600">Rp {selectedPurchaseGroup.total_cost.toLocaleString('id-ID')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

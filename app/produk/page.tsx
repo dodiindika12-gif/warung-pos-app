@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation, getCategories, addCategory, updateCategory, deleteCategory, processOpname, getStockHistory } from '../actions';
+import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation, getCategories, addCategory, updateCategory, deleteCategory, processOpname, getStockHistory, bulkUpdateCategory } from '../actions';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { Button } from "@/components/ui/button";
 import ExcelJS from 'exceljs';
+import LoadingAnimation from '../components/LoadingAnimation';
 
 type Product = { id: number; name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number; sold_last_7_days: number; created_at?: string };
 
@@ -336,27 +337,27 @@ function ProdukContent() {
             <h1 className="text-2xl md:text-3xl font-black text-gray-800">📦 Master Produk</h1>
             <p className="text-gray-500 font-medium mt-1">Kelola inventaris dan pantau stok warung Anda</p>
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-2 md:pb-0">
+          <div className="grid grid-cols-2 md:flex md:flex-row gap-2 md:gap-4 w-full md:w-auto">
             <Button 
               variant="outline"
               onClick={() => setShowCategoryModal(true)} 
-              className="font-bold px-4 md:px-6 py-3 rounded-2xl shadow-sm transition flex items-center gap-2"
+              className="font-bold w-full px-2 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-sm transition flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm h-10 md:h-12"
             >
               🏷️ Kategori
             </Button>
             <Button 
               variant="outline"
               onClick={() => setShowOpnameModal(true)} 
-              className="font-bold px-6 py-3 rounded-2xl shadow-sm transition flex items-center gap-2"
+              className="font-bold w-full px-2 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-sm transition flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm h-10 md:h-12"
             >
               📋 Opname
             </Button>
             <Button 
               variant="outline"
               onClick={exportToExcel}
-              className="font-bold px-6 py-3 rounded-2xl shadow-sm transition flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+              className="font-bold w-full px-2 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-sm transition flex items-center justify-center gap-1.5 md:gap-2 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200 text-xs md:text-sm h-10 md:h-12"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
               Excel
             </Button>
             <Button 
@@ -365,7 +366,7 @@ function ProdukContent() {
                 setFormData({ name: '', barcode: '', category: 'Umum', selling_price: '', cost_price: '', stock: '' });
                 setShowAddForm(true);
               }} 
-              className="font-bold px-6 py-3 rounded-2xl shadow-lg shadow-primary/30 flex items-center gap-2"
+              className="font-bold w-full px-2 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-lg shadow-primary/30 flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm h-10 md:h-12"
             >
               + Tambah
             </Button>
@@ -480,11 +481,11 @@ function ProdukContent() {
 
           {/* Tabel Data Master */}
           <div className="w-full bg-white p-4 md:p-8 rounded-2xl md:rounded-[32px] shadow-sm border border-gray-100 overflow-x-auto flex flex-col mt-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
               <h2 className="text-xl font-bold text-gray-800">Daftar & Status Restock</h2>
               
               {/* Filter UI */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 w-full lg:w-auto">
                 <select
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
@@ -538,7 +539,9 @@ function ProdukContent() {
               </div>
             </div>
             
-            <table className="w-full text-left border-collapse">
+            {/* TABLE */}
+            <div className="w-full overflow-x-auto pb-32 md:pb-0">
+              <table className="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
               <thead>
                 <tr className="border-b-2 border-gray-100 text-xs uppercase tracking-wider text-gray-400">
                   <th className="pb-4 font-bold w-10 text-center">
@@ -687,6 +690,7 @@ function ProdukContent() {
               </tbody>
             </table>
           </div>
+        </div>
           
           {/* Modal Kelola Kategori */}
           {showCategoryModal && (
@@ -864,7 +868,7 @@ function ProdukContent() {
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {loading ? (
-                        <tr><td colSpan={3} className="p-8 text-center text-gray-400 font-medium">Memuat riwayat...</td></tr>
+                        <tr><td colSpan={3} className="p-8"><LoadingAnimation text="Memuat riwayat..." /></td></tr>
                       ) : historyItems.length === 0 ? (
                         <tr><td colSpan={3} className="p-8 text-center text-gray-400 font-medium">Belum ada riwayat stok.</td></tr>
                       ) : (
@@ -891,27 +895,49 @@ function ProdukContent() {
             </div>
           )}
 
-          {/* Floating Action Bar untuk Cetak Massal */}
+          {/* Floating Action Bar untuk Cetak & Ubah Kategori Massal */}
           {selectedProducts.length > 0 && (
-            <div className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-4 rounded-full shadow-2xl flex items-center gap-6 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300">
-              <div className="font-semibold text-sm">
+            <div className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 md:px-6 py-3 md:py-4 rounded-[2rem] shadow-2xl flex flex-col md:flex-row items-center gap-3 md:gap-6 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300 w-[95%] md:w-auto">
+              <div className="font-semibold text-sm whitespace-nowrap">
                 <span className="bg-primary/20 text-white px-2 py-1 rounded-md mr-2">{selectedProducts.length}</span>
                 Produk Terpilih
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap justify-center items-center gap-2">
+                <select 
+                  onChange={async (e) => {
+                    const cat = e.target.value;
+                    if (cat && confirm(`Ubah kategori untuk ${selectedProducts.length} produk yang dipilih menjadi "${cat}"?`)) {
+                      setLoading(true);
+                      await bulkUpdateCategory(selectedProducts, cat);
+                      await loadProducts();
+                      setSelectedProducts([]);
+                      setLoading(false);
+                    }
+                    e.target.value = "";
+                  }}
+                  className="bg-gray-800 text-white border border-gray-700 rounded-xl px-3 h-9 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer text-center"
+                  disabled={loading}
+                >
+                  <option value="">+ Pindah Kategori</option>
+                  {categories.map(c => (
+                    <option key={`bulk-cat-${c.id}`} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+                <Button 
+                  onClick={() => window.open(`/produk/print-batch?ids=${selectedProducts.join(',')}`, '_blank')}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2 h-9"
+                  disabled={loading}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 hidden md:block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                  Cetak Label
+                </Button>
                 <Button 
                   onClick={() => setSelectedProducts([])}
                   variant="ghost" 
                   className="text-gray-300 hover:text-white hover:bg-white/10 rounded-xl text-xs font-semibold h-9"
+                  disabled={loading}
                 >
                   Batal
-                </Button>
-                <Button 
-                  onClick={() => window.open(`/produk/print-batch?ids=${selectedProducts.join(',')}`, '_blank')}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2 h-9"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                  Cetak {selectedProducts.length} Label A4
                 </Button>
               </div>
             </div>
@@ -926,7 +952,7 @@ function ProdukContent() {
 // Membungkus dengan Suspense karena menggunakan useSearchParams
 export default function ProdukPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-gray-500 font-medium flex items-center justify-center h-full">Memuat Produk...</div>}>
+    <Suspense fallback={<LoadingAnimation text="Memuat Produk..." />}>
       <ProdukContent />
     </Suspense>
   );

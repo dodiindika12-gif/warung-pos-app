@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getTransactionHistory, getTransactionDetails, refundTransaction } from '../actions';
+import LoadingAnimation from '../components/LoadingAnimation';
 
 export default function RiwayatPage() {
   const [history, setHistory] = useState<any[]>([]);
@@ -11,6 +12,10 @@ export default function RiwayatPage() {
   // Format YYYY-MM-DD for input date
   const todayStr = new Date().toISOString().split('T')[0];
   const [filterDate, setFilterDate] = useState(todayStr);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [transactionDetails, setTransactionDetails] = useState<any[]>([]);
@@ -42,10 +47,16 @@ export default function RiwayatPage() {
       setLoading(true);
       const data = await getTransactionHistory(filterDate || undefined);
       setHistory(data);
+      setCurrentPage(1); // Reset to page 1 on new filter
       setLoading(false);
     }
     loadData();
   }, [filterDate]);
+
+  // Pagination Logic
+  const totalPages = Math.ceil(history.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentHistory = history.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="flex w-full h-full p-4 md:p-8 overflow-y-auto pb-24 md:pb-8">
@@ -80,43 +91,104 @@ export default function RiwayatPage() {
 
         <div className="bg-white p-4 md:p-8 rounded-2xl md:rounded-[32px] shadow-sm border border-gray-100 overflow-x-auto">
           {loading ? (
-            <div className="text-center py-8 text-gray-400 font-medium">Memuat data transaksi...</div>
+            <LoadingAnimation text="Memuat data transaksi..." />
           ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b-2 border-gray-100 text-xs uppercase tracking-wider text-gray-400">
-                  <th className="pb-4 font-bold">Waktu</th>
-                  <th className="pb-4 font-bold">ID Transaksi</th>
-                  <th className="pb-4 text-center font-bold">Metode Bayar</th>
-                  <th className="pb-4 text-right font-bold">Laba Kotor</th>
-                  <th className="pb-4 text-right font-bold">Total Nilai</th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="py-8 text-center text-gray-400 font-medium">Tidak ada transaksi ditemukan pada filter ini.</td>
-                  </tr>
-                ) : (
-                  history.map((h: any) => (
-                    <tr key={h.id} onClick={() => handleRowClick(h)} className="border-b border-gray-50 hover:bg-primary/10/50 cursor-pointer transition">
-                      <td className="py-4 text-sm font-medium text-gray-500">
-                        {new Date(h.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} <br/>
-                        <span className="text-gray-400 text-xs font-bold">{new Date(h.created_at).toLocaleTimeString('id-ID')}</span>
-                      </td>
-                      <td className="py-4 font-bold text-gray-800 text-sm">Trx #{h.id}</td>
-                      <td className="py-4 text-center">
-                        <span className={`px-3 py-1 rounded-lg text-xs font-bold ${h.payment_method === 'QRIS' ? 'bg-blue-50 text-blue-600' : 'bg-primary/10 text-primary'}`}>
-                          {h.payment_method}
-                        </span>
-                      </td>
-                      <td className="py-4 text-right text-green-600 font-bold text-sm">Rp {h.profit.toLocaleString('id-ID')}</td>
-                      <td className="py-4 text-right font-black text-green-600 text-sm">Rp {h.total_amount.toLocaleString('id-ID')}</td>
+            <>
+              {/* DESKTOP VIEW (TABLE) */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b-2 border-gray-100 text-xs uppercase tracking-wider text-gray-400">
+                      <th className="pb-4 font-bold">Waktu</th>
+                      <th className="pb-4 font-bold">ID Transaksi</th>
+                      <th className="pb-4 text-center font-bold">Metode Bayar</th>
+                      <th className="pb-4 text-right font-bold">Laba Kotor</th>
+                      <th className="pb-4 text-right font-bold">Total Nilai</th>
                     </tr>
+                  </thead>
+                  <tbody>
+                    {currentHistory.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-gray-400 font-medium">Tidak ada transaksi ditemukan pada filter ini.</td>
+                      </tr>
+                    ) : (
+                      currentHistory.map((h: any) => (
+                        <tr key={h.id} onClick={() => handleRowClick(h)} className="border-b border-gray-50 hover:bg-primary/10/50 cursor-pointer transition">
+                          <td className="py-4 text-sm font-medium text-gray-500">
+                            {new Date(h.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} <br/>
+                            <span className="text-gray-400 text-xs font-bold">{new Date(h.created_at).toLocaleTimeString('id-ID')}</span>
+                          </td>
+                          <td className="py-4 font-bold text-gray-800 text-sm">Trx #{h.id}</td>
+                          <td className="py-4 text-center">
+                            <span className={`px-3 py-1 rounded-lg text-xs font-bold ${h.payment_method === 'QRIS' ? 'bg-blue-50 text-blue-600' : 'bg-primary/10 text-primary'}`}>
+                              {h.payment_method}
+                            </span>
+                          </td>
+                          <td className="py-4 text-right text-green-600 font-bold text-sm">Rp {h.profit.toLocaleString('id-ID')}</td>
+                          <td className="py-4 text-right font-black text-green-600 text-sm">Rp {h.total_amount.toLocaleString('id-ID')}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* MOBILE VIEW (CARDS) */}
+              <div className="flex flex-col gap-4 md:hidden">
+                {currentHistory.length === 0 ? (
+                  <div className="py-8 text-center text-gray-400 font-medium">Tidak ada transaksi ditemukan.</div>
+                ) : (
+                  currentHistory.map((h: any) => (
+                    <div key={h.id} onClick={() => handleRowClick(h)} className="bg-white border border-gray-100 shadow-sm p-5 rounded-2xl flex flex-col gap-3 cursor-pointer active:scale-[0.98] transition">
+                      <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                        <span className="font-black text-gray-800 text-lg">Trx #{h.id}</span>
+                        <span className={`px-3 py-1 rounded-lg text-xs font-bold ${h.payment_method === 'QRIS' ? 'bg-blue-50 text-blue-600' : 'bg-primary/10 text-primary'}`}>{h.payment_method}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-500 font-medium">Waktu</span>
+                        <span className="font-bold text-gray-700 text-right">{new Date(h.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} <span className="text-gray-400">{new Date(h.created_at).toLocaleTimeString('id-ID')}</span></span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-500 font-medium">Laba Kotor</span>
+                        <span className="text-green-600 font-bold">Rp {h.profit.toLocaleString('id-ID')}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-1">
+                        <span className="text-gray-500 font-bold text-sm">Total Nilai</span>
+                        <span className="font-black text-green-600 text-xl">Rp {h.total_amount.toLocaleString('id-ID')}</span>
+                      </div>
+                    </div>
                   ))
                 )}
-              </tbody>
-            </table>
+              </div>
+            </>
+          )}
+          
+          {/* Pagination Controls */}
+          {!loading && history.length > 0 && (
+            <div className="flex flex-col md:flex-row justify-between items-center mt-6 pt-4 border-t border-gray-100 gap-4">
+              <p className="text-sm text-gray-500 text-center md:text-left">
+                Menampilkan <span className="font-bold text-gray-700">{startIndex + 1}</span> - <span className="font-bold text-gray-700">{Math.min(startIndex + itemsPerPage, history.length)}</span> dari <span className="font-bold text-gray-700">{history.length}</span> transaksi
+              </p>
+              <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+                <button 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 text-sm font-bold bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition flex-1 md:flex-none text-center"
+                >
+                  Sebelumnya
+                </button>
+                <div className="text-sm font-bold text-gray-800 bg-gray-100 px-4 py-2 rounded-xl whitespace-nowrap">
+                  {currentPage} / {totalPages}
+                </div>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 text-sm font-bold bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition flex-1 md:flex-none text-center"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
@@ -149,7 +221,7 @@ export default function RiwayatPage() {
               
               <h3 className="font-bold text-gray-800 border-b border-gray-100 pb-2 mb-2">Produk yang Dibeli</h3>
               {loadingDetails ? (
-                <div className="text-center py-4 text-gray-400 font-medium text-sm">Memuat detail...</div>
+                <LoadingAnimation text="Memuat detail..." />
               ) : (
                 <div className="flex flex-col gap-3">
                   {transactionDetails.map((item, idx) => (
