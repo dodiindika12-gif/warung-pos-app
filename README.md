@@ -4,7 +4,10 @@ Aplikasi kasir (Point of Sale) modern yang dirancang khusus untuk mempermudah ma
 
 ## Changelog & Version History
 
-### [Versi 1.0] - Rilis Perdana (Current Version)
+### [Versi 1.1] - Hotfix Deployment (Current Version)
+- **Fix**: Memperbaiki error saat deployment di Vercel yang disebabkan oleh konflik peer dependency React (ERESOLVE) pada package `@dotlottie/react-player` dengan menambahkan konfigurasi `.npmrc`.
+
+### [Versi 1.0] - Rilis Perdana
 Rilis ini merupakan peluncuran awal aplikasi Kasir dengan sekumpulan fitur esensial yang sudah matang dan sangat ramah pengguna (Mobile-Friendly).
 
 #### ✨ Fitur Baru (Added)
