@@ -4,7 +4,10 @@ Aplikasi kasir (Point of Sale) modern yang dirancang khusus untuk mempermudah ma
 
 ## Changelog & Version History
 
-### [Versi 1.2] - Pengaturan UI & Sinkronisasi Zona Waktu (Current Version)
+### [Versi 1.3] - Hotfix Webhook Trigger (Current Version)
+- **Fix**: Memperbaiki isu webhook yang tidak tertrigger saat transaksi selesai. Masalah ini disebabkan oleh pembatalan (kill) Promise otomatis dari Server Actions Next.js saat membaca konfigurasi dari database secara asinkron (dangling promise). Pembacaan konfigurasi webhook kini dilakukan di dalam siklus hidup utama (awaited) sehingga pengiriman webhook lebih stabil dan reliable.
+
+### [Versi 1.2] - Pengaturan UI & Sinkronisasi Zona Waktu
 - **Feature**: Memindahkan konfigurasi Webhook URL dari *environment variables* ke antarmuka aplikasi melalui modal Pengaturan Webhook. Data webhook kini disimpan secara persisten di dalam database Turso (tabel `settings`).
 - **Feature**: Memperbarui menu "Settings" (Logo Gir) pada *sidebar* menjadi *dropdown* interaktif yang memuat opsi: **Docs**, **Webhook**, dan **Logout**.
 - **Feature**: Tombol Logout ditambahkan untuk menghapus sesi otentikasi PIN kasir secara cepat dan langsung mengunci aplikasi.

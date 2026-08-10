@@ -203,8 +203,15 @@ export async function processCheckout(cart: any[], paymentMethod: string, totalA
     }))
   };
   
+  // Mengambil konfigurasi dari DB *sebelum* action selesai agar promise tidak dibunuh
+  const [webhookUrl, webhookToken, webhookSecret] = await Promise.all([
+    getSetting('webhook_url'),
+    getSetting('webhook_token'),
+    getSetting('webhook_secret')
+  ]);
+
   // Memanggil webhook
-  sendWebhook(webhookPayload).catch(console.error);
+  sendWebhook(webhookPayload, webhookUrl, webhookToken, webhookSecret).catch(console.error);
 
   return { success: true };
 }

@@ -15,20 +15,10 @@ function formatWaktu(timestamp: string) {
   }) + ' WITA';
 }
 
-import { turso } from '@/app/db';
-
-async function getSetting(key: string) {
-  const { rows } = await turso.execute({
-    sql: "SELECT value FROM settings WHERE key = ?",
-    args: [key]
-  });
-  return rows[0]?.value as string | undefined;
-}
-
-export async function sendWebhook(transaction: any) {
-  const url = await getSetting('webhook_url') || process.env.HERMES_WEBHOOK_URL;
-  const token = await getSetting('webhook_token') || process.env.HERMES_API_TOKEN;
-  const secret = await getSetting('webhook_secret') || process.env.HERMES_WEBHOOK_SECRET;
+export async function sendWebhook(transaction: any, configUrl?: string, configToken?: string, configSecret?: string) {
+  const url = configUrl || process.env.HERMES_WEBHOOK_URL;
+  const token = configToken || process.env.HERMES_API_TOKEN;
+  const secret = configSecret || process.env.HERMES_WEBHOOK_SECRET;
 
   // Jika URL tidak di-set, skip pengiriman webhook
   if (!url) {
