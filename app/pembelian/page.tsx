@@ -224,7 +224,7 @@ export default function PembelianPage() {
 
   // Group purchases by invoice/supplier/date
   const groupedPurchases = purchases.reduce((acc, p) => {
-    const dateStr = new Date(p.created_at).toLocaleDateString('id-ID');
+    const dateStr = new Date(p.created_at + 'Z').toLocaleDateString('id-ID');
     const inv = p.invoice_title || 'Tanpa Nota';
     const sup = p.supplier || 'Toko tidak diketahui';
     const key = `${inv}-${sup}-${dateStr}`;
@@ -320,9 +320,9 @@ export default function PembelianPage() {
                         currentHistoryPurchases.map(g => (
                           <tr key={g.key} onClick={() => setSelectedPurchaseGroup(g)} className="border-b border-gray-50 hover:bg-primary/10/50 cursor-pointer transition">
                             <td className="py-4">
-                              <div className="text-sm font-bold text-gray-800">{new Date(g.created_at).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}</div>
+                              <div className="text-sm font-bold text-gray-800">{new Date(g.created_at + 'Z').toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}</div>
                               <div className="text-xs text-gray-400 font-medium mt-1">
-                                {new Date(g.created_at).toLocaleTimeString('id-ID')}
+                                {new Date(g.created_at + 'Z').toLocaleTimeString('id-ID')}
                               </div>
                             </td>
                             <td className="py-4 font-bold text-gray-800 text-sm">{g.supplier}</td>
@@ -352,7 +352,7 @@ export default function PembelianPage() {
                         </div>
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-gray-500 font-medium">Waktu</span>
-                          <span className="font-bold text-gray-700 text-right">{new Date(g.created_at).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})} <span className="text-gray-400">{new Date(g.created_at).toLocaleTimeString('id-ID')}</span></span>
+                          <span className="font-bold text-gray-700 text-right">{new Date(g.created_at + 'Z').toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})} <span className="text-gray-400">{new Date(g.created_at + 'Z').toLocaleTimeString('id-ID')}</span></span>
                         </div>
                         <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-1">
                           <span className="text-gray-500 font-bold text-sm">Total Biaya Nota</span>
@@ -727,7 +727,7 @@ export default function PembelianPage() {
               <div className="flex justify-between items-center p-6 md:p-8 border-b border-gray-100 bg-gray-50">
                 <div>
                   <h2 className="text-xl md:text-2xl font-black text-gray-800">{selectedPurchaseGroup.supplier}</h2>
-                  <p className="text-sm font-medium text-gray-500 mt-1">{new Date(selectedPurchaseGroup.created_at).toLocaleDateString('id-ID')}</p>
+                  <p className="text-sm font-medium text-gray-500 mt-1">{new Date(selectedPurchaseGroup.created_at + 'Z').toLocaleDateString('id-ID')}</p>
                 </div>
                 <button onClick={() => setSelectedPurchaseGroup(null)} className="text-gray-400 hover:text-gray-800 transition bg-white hover:bg-gray-100 w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 shadow-sm">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>

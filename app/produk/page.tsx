@@ -201,7 +201,7 @@ function ProdukContent() {
       case 'status_asc': {
         const getRank = (p: any) => {
           const dsi = (p.sold_last_7_days || 0) > 0 ? Math.round(p.stock / (p.sold_last_7_days / 7)) : -1;
-          const createdDate = p.created_at ? new Date(p.created_at) : new Date();
+          const createdDate = p.created_at ? new Date(p.created_at + 'Z') : new Date();
           const daysSinceCreated = (new Date().getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
           const isNewProduct = daysSinceCreated <= 14;
 
@@ -216,7 +216,7 @@ function ProdukContent() {
       case 'status_desc': {
         const getRank = (p: any) => {
           const dsi = (p.sold_last_7_days || 0) > 0 ? Math.round(p.stock / (p.sold_last_7_days / 7)) : -1;
-          const createdDate = p.created_at ? new Date(p.created_at) : new Date();
+          const createdDate = p.created_at ? new Date(p.created_at + 'Z') : new Date();
           const daysSinceCreated = (new Date().getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
           const isNewProduct = daysSinceCreated <= 14;
 
@@ -273,7 +273,7 @@ function ProdukContent() {
       const terjualMingguIni = p.sold_last_7_days || 0;
       const avgDailySales = terjualMingguIni / 7;
       const dsi = avgDailySales > 0 ? Math.round(p.stock / avgDailySales) : -1;
-      const createdDate = p.created_at ? new Date(p.created_at) : new Date();
+      const createdDate = p.created_at ? new Date(p.created_at + 'Z') : new Date();
       const daysSinceCreated = (new Date().getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
       const isNewProduct = daysSinceCreated <= 14;
       
@@ -321,7 +321,7 @@ function ProdukContent() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `Data_Produk_${new Date().toISOString().split('T')[0]}.xlsx`);
+    link.setAttribute("download", `Data_Produk_${new Date(new Date().getTime() + 8 * 3600 * 1000).toISOString().split('T')[0]}.xlsx`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -578,7 +578,7 @@ function ProdukContent() {
                     const terjualMingguIni = p.sold_last_7_days;
                     const avgDailySales = terjualMingguIni / 7;
                     const dsi = avgDailySales > 0 ? Math.round(p.stock / avgDailySales) : -1;
-                    const createdDate = p.created_at ? new Date(p.created_at) : new Date();
+                    const createdDate = p.created_at ? new Date(p.created_at + 'Z') : new Date();
                     const daysSinceCreated = (new Date().getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
                     const isNewProduct = daysSinceCreated <= 14;
 
@@ -875,7 +875,7 @@ function ProdukContent() {
                         historyItems.map((item, index) => (
                           <tr key={index} className="bg-white">
                             <td className="p-4 text-sm text-gray-600 font-medium">
-                              {new Date(item.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                              {new Date(item.created_at + 'Z').toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
                             </td>
                             <td className="p-4 text-sm font-bold text-gray-800">
                               {item.reason}

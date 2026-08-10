@@ -11,7 +11,7 @@ export default function LaporanPage() {
   const [chartData, setChartData] = useState<any[]>([]);
   
   // Date states, default to today
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = new Date(new Date().getTime() + 8 * 3600 * 1000).toISOString().split('T')[0];
   const [startDate, setStartDate] = useState(todayStr);
   const [endDate, setEndDate] = useState(todayStr);
   const [loading, setLoading] = useState(false);
@@ -35,8 +35,8 @@ export default function LaporanPage() {
 
   // Handle Quick Filters
   const setQuickFilter = (days: number) => {
-    const end = new Date();
-    const start = new Date();
+    const end = new Date(new Date().getTime() + 8 * 3600 * 1000);
+    const start = new Date(new Date().getTime() + 8 * 3600 * 1000);
     start.setDate(end.getDate() - days);
     setStartDate(start.toISOString().split('T')[0]);
     setEndDate(end.toISOString().split('T')[0]);
@@ -52,7 +52,7 @@ export default function LaporanPage() {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-4 rounded-xl shadow-xl border border-gray-100">
-          <p className="font-bold text-gray-800 mb-2">{new Date(label).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}</p>
+          <p className="font-bold text-gray-800 mb-2">{new Date(label + 'T00:00:00Z').toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}</p>
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center gap-2 text-sm font-medium my-1">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
@@ -154,7 +154,7 @@ export default function LaporanPage() {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                   <XAxis 
                     dataKey="date" 
-                    tickFormatter={(tick) => new Date(tick).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                    tickFormatter={(tick) => new Date(tick + 'T00:00:00Z').toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 600 }}
@@ -258,7 +258,7 @@ export default function LaporanPage() {
                 <div key={idx} className="flex flex-col md:flex-row justify-between md:items-center bg-white hover:bg-gray-50 p-5 rounded-2xl border border-gray-100 transition gap-4">
                   <div>
                     <h3 className="font-black text-gray-800 text-lg">{inv.supplier}</h3>
-                    <p className="text-sm font-medium text-gray-500 mt-1">{new Date(inv.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                    <p className="text-sm font-medium text-gray-500 mt-1">{new Date(inv.date + 'T00:00:00Z').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
                   </div>
                   <div className="text-left md:text-right pt-3 border-t border-gray-100 md:border-0 md:pt-0">
                     <p className="text-xs font-bold text-gray-400 mb-1 hidden md:block">Total Nota</p>

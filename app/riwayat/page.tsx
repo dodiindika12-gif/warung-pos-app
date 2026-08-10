@@ -10,7 +10,7 @@ export default function RiwayatPage() {
   const [loading, setLoading] = useState(true);
   
   // Format YYYY-MM-DD for input date
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = new Date(new Date().getTime() + 8 * 3600 * 1000).toISOString().split('T')[0];
   const [filterDate, setFilterDate] = useState(todayStr);
 
   // Pagination states
@@ -115,8 +115,8 @@ export default function RiwayatPage() {
                       currentHistory.map((h: any) => (
                         <tr key={h.id} onClick={() => handleRowClick(h)} className="border-b border-gray-50 hover:bg-primary/10/50 cursor-pointer transition">
                           <td className="py-4 text-sm font-medium text-gray-500">
-                            {new Date(h.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} <br/>
-                            <span className="text-gray-400 text-xs font-bold">{new Date(h.created_at).toLocaleTimeString('id-ID')}</span>
+                            {new Date(h.created_at + 'Z').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} <br/>
+                            <span className="text-gray-400 text-xs font-bold">{new Date(h.created_at + 'Z').toLocaleTimeString('id-ID')}</span>
                           </td>
                           <td className="py-4 font-bold text-gray-800 text-sm">Trx #{h.id}</td>
                           <td className="py-4 text-center">
@@ -146,7 +146,7 @@ export default function RiwayatPage() {
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-gray-500 font-medium">Waktu</span>
-                        <span className="font-bold text-gray-700 text-right">{new Date(h.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} <span className="text-gray-400">{new Date(h.created_at).toLocaleTimeString('id-ID')}</span></span>
+                        <span className="font-bold text-gray-700 text-right">{new Date(h.created_at + 'Z').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} <span className="text-gray-400">{new Date(h.created_at + 'Z').toLocaleTimeString('id-ID')}</span></span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-gray-500 font-medium">Laba Kotor</span>
@@ -210,7 +210,7 @@ export default function RiwayatPage() {
             <div className="p-6 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
               <div className="flex justify-between text-sm mb-2 border-b border-gray-100 pb-2">
                 <span className="text-gray-500 font-medium">Waktu Transaksi:</span>
-                <span className="font-bold text-green-600">{new Date(selectedTransaction.created_at).toLocaleString('id-ID')}</span>
+                <span className="font-bold text-green-600">{new Date(selectedTransaction.created_at + 'Z').toLocaleString('id-ID')}</span>
               </div>
               <div className="flex justify-between text-sm mb-4 border-b border-gray-100 pb-2">
                 <span className="text-gray-500 font-medium">Metode Pembayaran:</span>

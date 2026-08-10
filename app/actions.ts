@@ -100,7 +100,7 @@ export async function getProductsWithRecommendation() {
       COALESCE(SUM(ti.quantity), 0) as sold_last_7_days
     FROM products p
     LEFT JOIN transaction_items ti ON p.id = ti.product_id 
-    LEFT JOIN transactions t ON ti.transaction_id = t.id AND t.created_at >= date('now', '-7 days')
+    LEFT JOIN transactions t ON ti.transaction_id = t.id AND t.created_at >= date('now', '+8 hours', '-7 days')
     GROUP BY p.id
     ORDER BY p.name ASC
   `);
@@ -276,12 +276,12 @@ export async function processBulkPurchase(invoiceTitle: string, supplier: string
 // MODUL LAPORAN & ANALISIS (DENGAN PROFIT)
 // ==========================================
 export async function getDashboardStats(startDate?: string, endDate?: string) {
-  let dateFilter = "date(created_at) = date('now')";
-  let tDateFilter = "date(t.created_at) = date('now')";
+  let dateFilter = "date(created_at, '+8 hours') = date('now', '+8 hours')";
+  let tDateFilter = "date(t.created_at, '+8 hours') = date('now', '+8 hours')";
   
   if (startDate && endDate) {
-    dateFilter = `date(created_at) BETWEEN date('${startDate}') AND date('${endDate}')`;
-    tDateFilter = `date(t.created_at) BETWEEN date('${startDate}') AND date('${endDate}')`;
+    dateFilter = `date(created_at, '+8 hours') BETWEEN date('${startDate}') AND date('${endDate}')`;
+    tDateFilter = `date(t.created_at, '+8 hours') BETWEEN date('${startDate}') AND date('${endDate}')`;
   }
 
   const stats = await turso.execute(`
@@ -322,10 +322,10 @@ export async function getDashboardStats(startDate?: string, endDate?: string) {
   `);
 
   const purchaseInvoices = await turso.execute(`
-    SELECT invoice_title, supplier, date(created_at) as date, SUM(total_cost) as total
+    SELECT invoice_title, supplier, date(created_at, '+8 hours') as date, SUM(total_cost) as total
     FROM purchases
     WHERE ${dateFilter}
-    GROUP BY invoice_title, supplier, date(created_at)
+    GROUP BY invoice_title, supplier, date(created_at, '+8 hours')
     ORDER BY date DESC
   `);
 
@@ -359,24 +359,24 @@ export async function getChartData(startDate: string, endDate: string) {
       WHERE date < date(?)
     ),
     DailyRevenue AS (
-      SELECT date(created_at) as dt, SUM(total_amount) as revenue
+      SELECT date(created_at, '+8 hours') as dt, SUM(total_amount) as revenue
       FROM transactions
-      WHERE date(created_at) BETWEEN date(?) AND date(?)
-      GROUP BY date(created_at)
+      WHERE date(created_at, '+8 hours') BETWEEN date(?) AND date(?)
+      GROUP BY date(created_at, '+8 hours')
     ),
     DailyExpense AS (
-      SELECT date(created_at) as dt, SUM(amount) as expense
+      SELECT date(created_at, '+8 hours') as dt, SUM(amount) as expense
       FROM operational_expenses
-      WHERE date(created_at) BETWEEN date(?) AND date(?)
-      GROUP BY date(created_at)
+      WHERE date(created_at, '+8 hours') BETWEEN date(?) AND date(?)
+      GROUP BY date(created_at, '+8 hours')
     ),
     DailyCOGS AS (
-      SELECT date(t.created_at) as dt, SUM(ti.quantity * p.cost_price) as cogs
+      SELECT date(t.created_at, '+8 hours') as dt, SUM(ti.quantity * p.cost_price) as cogs
       FROM transaction_items ti
       JOIN products p ON ti.product_id = p.id
       JOIN transactions t ON ti.transaction_id = t.id
-      WHERE date(t.created_at) BETWEEN date(?) AND date(?)
-      GROUP BY date(t.created_at)
+      WHERE date(t.created_at, '+8 hours') BETWEEN date(?) AND date(?)
+      GROUP BY date(t.created_at, '+8 hours')
     )
     SELECT 
       d.date, 
@@ -416,7 +416,7 @@ export async function getTransactionHistory(dateStr?: string) {
   
   let args: any[] = [];
   if (dateStr) {
-    query += ` WHERE date(t.created_at) = ? `;
+    query += ` WHERE date(t.created_at, '+8 hours') = ? `;
     args.push(dateStr);
   }
   
@@ -477,20 +477,20 @@ export async function refundTransaction(transactionId: number) {
 export async function getDailySales() {
   const { rows } = await turso.execute(`
     WITH DailyCOGS AS (
-        SELECT date(t.created_at) as date, SUM(ti.quantity * p.cost_price) as cogs
+        SELECT date(t.created_at, '+8 hours') as date, SUM(ti.quantity * p.cost_price) as cogs
         FROM transactions t
         JOIN transaction_items ti ON t.id = ti.transaction_id
         JOIN products p ON ti.product_id = p.id
-        GROUP BY date(t.created_at)
+        GROUP BY date(t.created_at, '+8 hours')
     )
     SELECT 
-        date(t.created_at) as date, 
+        date(t.created_at, '+8 hours') as date, 
         SUM(t.total_amount) as total_revenue, 
         COUNT(t.id) as total_trx,
         (SUM(t.total_amount) - COALESCE(MAX(dc.cogs), 0)) as total_profit
     FROM transactions t
-    LEFT JOIN DailyCOGS dc ON date(t.created_at) = dc.date
-    GROUP BY date(t.created_at)
+    LEFT JOIN DailyCOGS dc ON date(t.created_at, '+8 hours') = dc.date
+    GROUP BY date(t.created_at, '+8 hours')
     ORDER BY date DESC LIMIT 30
   `);
   return JSON.parse(JSON.stringify(rows));
@@ -499,20 +499,20 @@ export async function getDailySales() {
 export async function getMonthlySales() {
   const { rows } = await turso.execute(`
     WITH MonthlyCOGS AS (
-        SELECT strftime('%Y-%m', t.created_at) as month, SUM(ti.quantity * p.cost_price) as cogs
+        SELECT strftime('%Y-%m', t.created_at, '+8 hours') as month, SUM(ti.quantity * p.cost_price) as cogs
         FROM transactions t
         JOIN transaction_items ti ON t.id = ti.transaction_id
         JOIN products p ON ti.product_id = p.id
-        GROUP BY strftime('%Y-%m', t.created_at)
+        GROUP BY strftime('%Y-%m', t.created_at, '+8 hours')
     )
     SELECT 
-        strftime('%Y-%m', t.created_at) as month, 
+        strftime('%Y-%m', t.created_at, '+8 hours') as month, 
         SUM(t.total_amount) as total_revenue, 
         COUNT(t.id) as total_trx,
         (SUM(t.total_amount) - COALESCE(MAX(mc.cogs), 0)) as total_profit
     FROM transactions t
-    LEFT JOIN MonthlyCOGS mc ON strftime('%Y-%m', t.created_at) = mc.month
-    GROUP BY strftime('%Y-%m', t.created_at)
+    LEFT JOIN MonthlyCOGS mc ON strftime('%Y-%m', t.created_at, '+8 hours') = mc.month
+    GROUP BY strftime('%Y-%m', t.created_at, '+8 hours')
     ORDER BY month DESC
   `);
   return JSON.parse(JSON.stringify(rows));
@@ -529,7 +529,7 @@ export async function getShoppingList() {
     FROM shopping_list s
     JOIN products p ON s.product_id = p.id
     LEFT JOIN transaction_items ti ON p.id = ti.product_id 
-    LEFT JOIN transactions t ON ti.transaction_id = t.id AND t.created_at >= date('now', '-7 days')
+    LEFT JOIN transactions t ON ti.transaction_id = t.id AND t.created_at >= date('now', '+8 hours', '-7 days')
     GROUP BY s.id
     ORDER BY s.id DESC
   `);
@@ -619,4 +619,21 @@ export async function getStockHistory(productId: number) {
     args: [productId]
   });
   return JSON.parse(JSON.stringify(rows));
+}
+// ==========================================
+// SETTINGS
+// ==========================================
+export async function getSetting(key: string) {
+  const { rows } = await turso.execute({
+    sql: "SELECT value FROM settings WHERE key = ?",
+    args: [key]
+  });
+  return rows[0]?.value as string | undefined;
+}
+
+export async function saveSetting(key: string, value: string) {
+  await turso.execute({
+    sql: "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+    args: [key, value]
+  });
 }

@@ -4,7 +4,13 @@ Aplikasi kasir (Point of Sale) modern yang dirancang khusus untuk mempermudah ma
 
 ## Changelog & Version History
 
-### [Versi 1.1] - Hotfix Deployment (Current Version)
+### [Versi 1.2] - Pengaturan UI & Sinkronisasi Zona Waktu (Current Version)
+- **Feature**: Memindahkan konfigurasi Webhook URL dari *environment variables* ke antarmuka aplikasi melalui modal Pengaturan Webhook. Data webhook kini disimpan secara persisten di dalam database Turso (tabel `settings`).
+- **Feature**: Memperbarui menu "Settings" (Logo Gir) pada *sidebar* menjadi *dropdown* interaktif yang memuat opsi: **Docs**, **Webhook**, dan **Logout**.
+- **Feature**: Tombol Logout ditambahkan untuk menghapus sesi otentikasi PIN kasir secara cepat dan langsung mengunci aplikasi.
+- **Fix**: Mensinkronkan seluruh pengaturan waktu dan laporan di dalam aplikasi agar secara akurat mencerminkan zona waktu lokal pengguna (WITA / UTC+8). Kueri database dioptimalkan untuk memproses offset waktu sebelum agregasi hari/bulan, dan format tampilan waktu di-update.
+
+### [Versi 1.1] - Hotfix Deployment
 - **Fix**: Memperbaiki error saat deployment di Vercel yang disebabkan oleh konflik peer dependency React (ERESOLVE) pada package `@dotlottie/react-player` dengan menambahkan konfigurasi `.npmrc`.
 
 ### [Versi 1.0] - Rilis Perdana
@@ -21,25 +27,3 @@ Rilis ini merupakan peluncuran awal aplikasi Kasir dengan sekumpulan fitur esens
 - **Cetak Label Harga (Massal & Satuan)**: Fitur ekspor/print label harga barang untuk ditaruh pada rak warung, mendukung format pencetakan cetak massal (A4).
 - **Animasi Loading Global**: Seluruh transisi data dan _loading state_ di dalam aplikasi diseragamkan menggunakan animasi Lottie yang interaktif dan nyaman dipandang.
 - **Desain 100% Mobile Friendly**: Semua tabel data yang berat diubah menjadi bentuk Kartu (Card Layout) atau dibuat _horizontally scrollable_ di perangkat seluler agar sangat nyaman dioperasikan oleh kasir melalui HP/Tablet.
-
----
-
-## Cara Menjalankan Aplikasi di Lokal
-
-1. Instalasi dependensi:
-```bash
-npm install
-```
-
-2. Konfigurasi Database (Turso):
-Pastikan Anda sudah memiliki kredensial Turso. Buat file `.env` (berkaca pada `.env.example`) dan isi:
-```env
-TURSO_DATABASE_URL=libsql://[NAMA_DB_ANDA].turso.io
-TURSO_AUTH_TOKEN=[TOKEN_ANDA]
-```
-
-3. Jalankan server lokal:
-```bash
-npm run dev
-```
-Akses di [http://localhost:3000](http://localhost:3000)
