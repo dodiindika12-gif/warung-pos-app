@@ -406,7 +406,7 @@ function ProdukContent() {
             <Button 
               onClick={() => {
                 setEditingProductId(null);
-                setFormData({ name: '', barcode: '', category: 'Umum', selling_price: '', cost_price: '', stock: '' });
+                setFormData({ name: '', barcode: '', category: 'Umum', selling_price: '', cost_price: '', stock: '', image: '' });
                 setShowAddForm(true);
               }} 
               className="font-bold w-full md:w-auto px-2 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-lg shadow-primary/30 flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm h-10 md:h-12"
