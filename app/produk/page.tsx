@@ -341,21 +341,21 @@ function ProdukContent() {
             <Button 
               variant="outline"
               onClick={() => setShowCategoryModal(true)} 
-              className="font-bold w-full px-2 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-sm transition flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm h-10 md:h-12"
+              className="font-bold w-full md:w-auto px-2 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-sm transition flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm h-10 md:h-12"
             >
               🏷️ Kategori
             </Button>
             <Button 
               variant="outline"
               onClick={() => setShowOpnameModal(true)} 
-              className="font-bold w-full px-2 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-sm transition flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm h-10 md:h-12"
+              className="font-bold w-full md:w-auto px-2 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-sm transition flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm h-10 md:h-12"
             >
               📋 Opname
             </Button>
             <Button 
               variant="outline"
               onClick={exportToExcel}
-              className="font-bold w-full px-2 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-sm transition flex items-center justify-center gap-1.5 md:gap-2 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200 text-xs md:text-sm h-10 md:h-12"
+              className="font-bold w-full md:w-auto px-2 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-sm transition flex items-center justify-center gap-1.5 md:gap-2 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200 text-xs md:text-sm h-10 md:h-12"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
               Excel
@@ -366,7 +366,7 @@ function ProdukContent() {
                 setFormData({ name: '', barcode: '', category: 'Umum', selling_price: '', cost_price: '', stock: '' });
                 setShowAddForm(true);
               }} 
-              className="font-bold w-full px-2 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-lg shadow-primary/30 flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm h-10 md:h-12"
+              className="font-bold w-full md:w-auto px-2 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-lg shadow-primary/30 flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm h-10 md:h-12"
             >
               + Tambah
             </Button>

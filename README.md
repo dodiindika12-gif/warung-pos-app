@@ -4,7 +4,13 @@ Aplikasi kasir (Point of Sale) modern yang dirancang khusus untuk mempermudah ma
 
 ## Changelog & Version History
 
-### [Versi 1.3] - Hotfix Webhook Trigger (Current Version)
+### [Versi 1.4] - Kalkulator & Pembebasan Stok Minus (Current Version)
+- **Feature**: Menambahkan halaman Kalkulator dengan desain modern yang dapat diakses langsung dari menu navigasi.
+- **Feature**: Mengizinkan kasir untuk menginput transaksi dan checkout barang meskipun stok sistem 0 atau kurang. Stok akan otomatis menjadi minus (negatif) agar kasir tidak terhambat bekerja saat terjadi selisih stok fisik vs sistem.
+- **UI/UX**: Memperbaiki tampilan tombol aksi (Kategori, Opname, Excel, Tambah) pada halaman Master Produk di versi PC agar lebarnya menyesuaikan teks (tidak melebar penuh).
+- **UI/UX**: Menyempurnakan layout halaman Kalkulator agar proporsional di tengah layar pada versi PC, serta mengatur jarak presisi 10px antara tombol kalkulator paling bawah dengan menu navigasi pada versi mobile.
+
+### [Versi 1.3] - Hotfix Webhook Trigger
 - **Fix**: Memperbaiki isu webhook yang tidak tertrigger saat transaksi selesai. Masalah ini disebabkan oleh pembatalan (kill) Promise otomatis dari Server Actions Next.js saat membaca konfigurasi dari database secara asinkron (dangling promise). Pembacaan konfigurasi webhook kini dilakukan di dalam siklus hidup utama (awaited) sehingga pengiriman webhook lebih stabil dan reliable.
 
 ### [Versi 1.2] - Pengaturan UI & Sinkronisasi Zona Waktu

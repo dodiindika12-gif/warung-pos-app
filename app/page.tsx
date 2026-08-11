@@ -54,8 +54,7 @@ async function loadProducts() {
     if (!searchQuery.trim()) return;
     const product = products.find(p => p.barcode === searchQuery.trim());
     if (product) {
-      if (product.stock <= 0) alert(`Stok ${product.name} habis!`);
-      else addToCart(product);
+      addToCart(product);
       setSearchQuery('');
     }
   };
@@ -64,7 +63,6 @@ async function loadProducts() {
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
-        if (existing.quantity >= product.stock) return prev;
         return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
       }
       return [...prev, { ...product, quantity: 1 }];
@@ -75,7 +73,7 @@ async function loadProducts() {
     setCart(prev => prev.map(item => {
       if (item.id === id) {
         const newQ = item.quantity + delta;
-        return { ...item, quantity: Math.min(newQ, item.stock) };
+        return { ...item, quantity: newQ };
       }
       return item;
     }).filter(item => item.quantity > 0));
@@ -139,8 +137,7 @@ async function loadProducts() {
                 setShowScanner(false);
                 const product = products.find(p => p.barcode === code);
                 if (product) {
-                  if (product.stock <= 0) alert(`Stok ${product.name} habis!`);
-                  else addToCart(product);
+                  addToCart(product);
                   setSearchQuery('');
                 }
               }}
@@ -203,7 +200,7 @@ async function loadProducts() {
           {filteredProducts.map(p => {
             if (viewMode === 'grid') {
               return (
-                <div key={p.id} onClick={() => p.stock > 0 && addToCart(p)} className={`bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm border border-gray-100 transition ${p.stock > 0 ? 'cursor-pointer hover:shadow-md hover:border-primary/20' : 'opacity-50 cursor-not-allowed'}`}>
+                <div key={p.id} onClick={() => addToCart(p)} className={`bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm border border-gray-100 transition cursor-pointer hover:shadow-md hover:border-primary/20`}>
                   <h3 className="font-bold text-gray-800 mb-1">{p.name}</h3>
                   <p className="text-green-600 font-bold text-lg mb-3">Rp {p.selling_price.toLocaleString('id-ID')}</p>
                   <p className="text-xs text-gray-400 font-medium">Stok: {p.stock}</p>
@@ -211,7 +208,7 @@ async function loadProducts() {
               );
             } else {
               return (
-                <div key={p.id} onClick={() => p.stock > 0 && addToCart(p)} className={`bg-white rounded-2xl p-5 flex items-center shadow-sm border border-gray-100 transition ${p.stock > 0 ? 'cursor-pointer hover:shadow-md hover:border-primary/20' : 'opacity-50 cursor-not-allowed'}`}>
+                <div key={p.id} onClick={() => addToCart(p)} className={`bg-white rounded-2xl p-5 flex items-center shadow-sm border border-gray-100 transition cursor-pointer hover:shadow-md hover:border-primary/20`}>
                   <div className="flex-1 flex flex-col justify-between py-1">
                     <h3 className="font-bold text-gray-800 text-lg">{p.name}</h3>
                     <p className="text-sm text-gray-400 font-medium mt-1">{p.category} &bull; Stok: {p.stock}</p>
