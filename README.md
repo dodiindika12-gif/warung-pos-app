@@ -4,7 +4,13 @@ Aplikasi kasir (Point of Sale) modern yang dirancang khusus untuk mempermudah ma
 
 ## Changelog & Version History
 
-### [Versi 1.4] - Kalkulator & Pembebasan Stok Minus (Current Version)
+### [Versi 1.5] - Foto Produk & AI Scanner Kemasan (OCR)
+- **Feature**: Mengizinkan penambahan foto pada setiap barang di Master Produk. Foto akan dikompres dan disimpan menggunakan format Base64 secara aman di database.
+- **Feature**: AI Scanner Kemasan (Optical Character Recognition) menggunakan Tesseract.js di menu Kasir dan Produk yang memungkinkan kasir menscan teks kemasan barang secara *real-time* via kamera tanpa perlu repot menekan tombol *shutter*.
+- **Feature**: Sistem Disambiguasi (Resolusi Konflik) pada AI Scanner jika ditemukan kecocokan untuk 2 produk berbeda yang memiliki kemasan mirip/identik (misal: beda ukuran/gramasi).
+- **UI/UX**: Perombakan tata letak Grid list produk di menu Kasir agar memuat foto secara dominan dan indah, serta mengubah desain tombol Keranjang (Cart) melayang di mobile menjadi sebuah *bottom bar* yang elegan dan responsif.
+
+### [Versi 1.4] - Kalkulator & Pembebasan Stok Minus
 - **Feature**: Menambahkan halaman Kalkulator dengan desain modern yang dapat diakses langsung dari menu navigasi.
 - **Feature**: Mengizinkan kasir untuk menginput transaksi dan checkout barang meskipun stok sistem 0 atau kurang. Stok akan otomatis menjadi minus (negatif) agar kasir tidak terhambat bekerja saat terjadi selisih stok fisik vs sistem.
 - **UI/UX**: Memperbaiki tampilan tombol aksi (Kategori, Opname, Excel, Tambah) pada halaman Master Produk di versi PC agar lebarnya menyesuaikan teks (tidak melebar penuh).

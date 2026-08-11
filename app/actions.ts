@@ -13,10 +13,10 @@ export async function getProducts() {
 }
 
 // UPDATE BARCODE: Menambahkan parameter barcode ke dalam insert database
-export async function addProduct(data: { name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number }) {
+export async function addProduct(data: { name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number; image?: string }) {
   const result = await turso.execute({
-    sql: 'INSERT INTO products (name, barcode, category, cost_price, selling_price, stock) VALUES (?, ?, ?, ?, ?, ?) RETURNING id',
-    args: [data.name, data.barcode, data.category, data.cost_price, data.selling_price, data.stock]
+    sql: 'INSERT INTO products (name, barcode, category, cost_price, selling_price, stock, image) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id',
+    args: [data.name, data.barcode, data.category, data.cost_price, data.selling_price, data.stock, data.image || null]
   });
   
   if (data.stock > 0) {
@@ -30,10 +30,10 @@ export async function addProduct(data: { name: string; barcode: string; category
   return { success: true };
 }
 
-export async function updateProduct(id: number, data: { name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number }) {
+export async function updateProduct(id: number, data: { name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number; image?: string }) {
   await turso.execute({
-    sql: 'UPDATE products SET name = ?, barcode = ?, category = ?, cost_price = ?, selling_price = ?, stock = ? WHERE id = ?',
-    args: [data.name, data.barcode, data.category, data.cost_price, data.selling_price, data.stock, id]
+    sql: 'UPDATE products SET name = ?, barcode = ?, category = ?, cost_price = ?, selling_price = ?, stock = ?, image = ? WHERE id = ?',
+    args: [data.name, data.barcode, data.category, data.cost_price, data.selling_price, data.stock, data.image || null, id]
   });
   return { success: true };
 }

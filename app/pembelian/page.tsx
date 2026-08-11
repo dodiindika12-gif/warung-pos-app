@@ -44,7 +44,7 @@ export default function PembelianPage() {
   const [formData, setFormData] = useState({ productId: '', name: '', quantity: '', costPrice: '', sellingPrice: '', oldStock: 0 });
 
   // New Product Form State
-  const [newProduct, setNewProduct] = useState({ name: '', barcode: '', category: 'Umum', cost_price: '', selling_price: '', stock: '0' });
+  const [newProduct, setNewProduct] = useState({ name: '', barcode: '', category: 'Umum', cost_price: '', selling_price: '', stock: '0', image: '' });
   const [historySearch, setHistorySearch] = useState('');
 
   // Pagination for history
@@ -181,6 +181,45 @@ export default function PembelianPage() {
     setLoading(false);
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 300;
+        const MAX_HEIGHT = 300;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        const dataUrl = canvas.toDataURL('image/webp', 0.8);
+        setNewProduct({ ...newProduct, image: dataUrl });
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleAddNewProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -190,7 +229,8 @@ export default function PembelianPage() {
       category: newProduct.category,
       cost_price: Number(newProduct.cost_price),
       selling_price: Number(newProduct.selling_price),
-      stock: 0 // Simpan dengan stok 0 agar tidak dobel saat nota disubmit
+      stock: 0, // Simpan dengan stok 0 agar tidak dobel saat nota disubmit
+      image: newProduct.image
     });
     
     await loadData();
@@ -214,7 +254,7 @@ export default function PembelianPage() {
       }]);
     }
     
-    setNewProduct({ name: '', barcode: '', category: 'Umum', cost_price: '', selling_price: '', stock: '0' });
+    setNewProduct({ name: '', barcode: '', category: 'Umum', cost_price: '', selling_price: '', stock: '0', image: '' });
     setFormData({ productId: '', name: '', quantity: '', costPrice: '', sellingPrice: '', oldStock: 0 });
     setLoading(false);
   };
@@ -630,6 +670,19 @@ export default function PembelianPage() {
               <p className="text-sm text-gray-500 mb-6">Produk ini akan disimpan ke Master Data.</p>
               
               <form onSubmit={handleAddNewProduct} className="space-y-4">
+                <div className="flex gap-4 mb-2 items-center">
+                  <div className="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center border border-gray-200 shrink-0">
+                    {newProduct.image ? (
+                      <img src={newProduct.image} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-3xl text-gray-300">📷</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Foto Produk (Opsional)</label>
+                    <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition cursor-pointer" />
+                  </div>
+                </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Nama Barang</label>
                   <input required type="text" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="Cth: Kopi Kapal Api" />

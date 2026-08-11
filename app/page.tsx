@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { getProducts, processCheckout, getCategories } from './actions';
 import { Button } from "@/components/ui/button";
 import BarcodeScanner from './components/BarcodeScanner';
+import OCRScanner from './components/OCRScanner';
 
-type Product = { id: number; name: string; barcode: string; category: string; selling_price: number; stock: number };
+type Product = { id: number; name: string; barcode: string; category: string; selling_price: number; stock: number; image?: string };
 type CartItem = Product & { quantity: number };
 
 export default function KasirPage() {
@@ -26,6 +27,7 @@ export default function KasirPage() {
   const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
   const [transactionId, setTransactionId] = useState('');
   const [showScanner, setShowScanner] = useState(false);
+  const [showOCR, setShowOCR] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -120,6 +122,9 @@ async function loadProducts() {
             <button type="button" onClick={() => setShowScanner(true)} title="Scan Barcode" className="shrink-0 bg-white border border-gray-100 hover:bg-gray-50 text-gray-700 font-bold px-4 rounded-full shadow-sm transition flex items-center justify-center whitespace-nowrap">
               📷
             </button>
+            <button type="button" onClick={() => setShowOCR(true)} title="AI Scan Kemasan" className="shrink-0 bg-white border border-gray-100 hover:bg-blue-50 text-blue-600 font-bold px-4 rounded-full shadow-sm transition flex items-center justify-center whitespace-nowrap">
+              ✨
+            </button>
             <button type="button" onClick={() => router.push('/riwayat')} title="Riwayat Transaksi" className="shrink-0 bg-white border border-gray-100 hover:bg-gray-50 text-gray-500 font-bold px-4 rounded-full shadow-sm transition flex items-center justify-center whitespace-nowrap">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </button>
@@ -142,6 +147,18 @@ async function loadProducts() {
                 }
               }}
               onClose={() => setShowScanner(false)}
+            />
+          )}
+
+          {showOCR && (
+            <OCRScanner 
+              products={products}
+              onScanSuccess={(product) => {
+                addToCart(product);
+                setShowOCR(false);
+                alert(`✨ ${product.name} otomatis ditambahkan ke keranjang!`);
+              }}
+              onClose={() => setShowOCR(false)}
             />
           )}
         </div>
@@ -200,21 +217,38 @@ async function loadProducts() {
           {filteredProducts.map(p => {
             if (viewMode === 'grid') {
               return (
-                <div key={p.id} onClick={() => addToCart(p)} className={`bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm border border-gray-100 transition cursor-pointer hover:shadow-md hover:border-primary/20`}>
-                  <h3 className="font-bold text-gray-800 mb-1">{p.name}</h3>
-                  <p className="text-green-600 font-bold text-lg mb-3">Rp {p.selling_price.toLocaleString('id-ID')}</p>
-                  <p className="text-xs text-gray-400 font-medium">Stok: {p.stock}</p>
+                <div key={p.id} onClick={() => addToCart(p)} className={`bg-white rounded-[20px] p-3 flex flex-col items-start text-left shadow-sm border border-gray-100 transition cursor-pointer hover:shadow-md hover:border-primary/20 overflow-hidden relative`}>
+                  <div className="w-full aspect-[4/3] bg-[#f8f9fa] rounded-xl mb-3 overflow-hidden flex items-center justify-center relative border border-gray-50">
+                    <div className={`absolute top-2 right-2 px-2 py-1 rounded shadow-sm text-[10px] font-bold z-10 ${p.stock <= 5 ? 'bg-orange-100 text-orange-700 border border-orange-200' : 'bg-[#ffc107] text-yellow-900 border border-yellow-400'}`}>
+                       {p.stock <= 5 && <span className="mr-1">⚠️</span>}
+                       Stok: {p.stock}
+                    </div>
+                    {p.image ? (
+                      <img src={p.image} alt={p.name} className="w-full h-full object-cover mix-blend-multiply" />
+                    ) : (
+                      <span className="text-gray-300 text-3xl">📷</span>
+                    )}
+                  </div>
+                  <h3 className="font-semibold text-gray-800 mb-1 line-clamp-2 leading-snug px-1 text-sm">{p.name}</h3>
+                  <p className="text-primary font-bold text-base px-1 mt-auto pt-1">Rp {p.selling_price.toLocaleString('id-ID')}</p>
                 </div>
               );
             } else {
               return (
-                <div key={p.id} onClick={() => addToCart(p)} className={`bg-white rounded-2xl p-5 flex items-center shadow-sm border border-gray-100 transition cursor-pointer hover:shadow-md hover:border-primary/20`}>
-                  <div className="flex-1 flex flex-col justify-between py-1">
-                    <h3 className="font-bold text-gray-800 text-lg">{p.name}</h3>
-                    <p className="text-sm text-gray-400 font-medium mt-1">{p.category} &bull; Stok: {p.stock}</p>
+                <div key={p.id} onClick={() => addToCart(p)} className={`bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-gray-100 transition cursor-pointer hover:shadow-md hover:border-primary/20`}>
+                  <div className="w-16 h-16 bg-gray-50 rounded-xl shrink-0 overflow-hidden flex items-center justify-center border border-gray-100">
+                    {p.image ? (
+                      <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-gray-300 text-xl">📷</span>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className="text-green-600 font-bold text-xl">Rp {p.selling_price.toLocaleString('id-ID')}</p>
+                  <div className="flex-1 flex flex-col justify-between">
+                    <h3 className="font-bold text-gray-800 text-base leading-tight mb-1">{p.name}</h3>
+                    <p className="text-xs text-gray-400 font-medium">{p.category} &bull; Stok: {p.stock}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-green-600 font-bold text-lg">Rp {p.selling_price.toLocaleString('id-ID')}</p>
                   </div>
                 </div>
               );
@@ -224,11 +258,29 @@ async function loadProducts() {
       </div>
 
       {/* TOMBOL CART MOBILE */}
-      <div className="md:hidden fixed bottom-20 right-4 z-30">
-        <button onClick={() => setIsMobileCartOpen(true)} className="bg-primary hover:bg-primary/90 text-white rounded-full p-4 shadow-lg flex items-center justify-center relative transition">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-          {cart.length > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">{cart.reduce((a,b)=>a+b.quantity, 0)}</span>}
-        </button>
+      <div className="md:hidden fixed bottom-20 left-4 right-4 z-30">
+        <div 
+          onClick={() => setIsMobileCartOpen(true)} 
+          className="bg-primary hover:bg-primary/90 text-white rounded-2xl p-4 shadow-xl flex items-center justify-between cursor-pointer transition active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-4">
+             <div className="relative">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+               {cart.length > 0 && (
+                 <span className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center border-2 border-primary">
+                   {cart.reduce((a,b)=>a+b.quantity, 0)}
+                 </span>
+               )}
+             </div>
+             <div className="flex flex-col">
+               <span className="text-[11px] text-white/80 font-medium tracking-wide">Total Tagihan</span>
+               <span className="text-lg font-bold leading-none mt-1">Rp {totalAmount.toLocaleString('id-ID')}</span>
+             </div>
+          </div>
+          <button className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition">
+            Bayar <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
       </div>
 
       {/* KANAN: Panel Keranjang */}

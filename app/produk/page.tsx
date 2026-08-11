@@ -4,16 +4,17 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { addProduct, updateProduct, deleteProduct, getProductsWithRecommendation, getCategories, addCategory, updateCategory, deleteCategory, processOpname, getStockHistory, bulkUpdateCategory } from '../actions';
 import BarcodeScanner from '../components/BarcodeScanner';
+import OCRScanner from '../components/OCRScanner';
 import { Button } from "@/components/ui/button";
 import ExcelJS from 'exceljs';
 import LoadingAnimation from '../components/LoadingAnimation';
 
-type Product = { id: number; name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number; sold_last_7_days: number; created_at?: string };
+type Product = { id: number; name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number; sold_last_7_days: number; created_at?: string; image?: string };
 
 function ProdukContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ name: '', barcode: '', category: 'Umum', cost_price: '', selling_price: '', stock: '' });
+  const [formData, setFormData] = useState({ name: '', barcode: '', category: 'Umum', cost_price: '', selling_price: '', stock: '', image: '' });
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [showScanner, setShowScanner] = useState(false);
@@ -27,6 +28,7 @@ function ProdukContent() {
   const [opnameSearchQuery, setOpnameSearchQuery] = useState('');
   const [showOpnameDropdown, setShowOpnameDropdown] = useState(false);
   const [showOpnameScanner, setShowOpnameScanner] = useState(false);
+  const [showOCRSearch, setShowOCRSearch] = useState(false);
 
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyItems, setHistoryItems] = useState<any[]>([]);
@@ -51,7 +53,7 @@ function ProdukContent() {
     const data = await getProductsWithRecommendation();
     const formattedData = data.map((row: any) => ({
       id: row.id, name: row.name, barcode: row.barcode || '', category: row.category || 'Umum', 
-      cost_price: row.cost_price, selling_price: row.selling_price, stock: row.stock, sold_last_7_days: row.sold_last_7_days
+      cost_price: row.cost_price, selling_price: row.selling_price, stock: row.stock, sold_last_7_days: row.sold_last_7_days, image: row.image || ''
     }));
     setProducts(formattedData);
     const catData = await getCategories();
@@ -118,6 +120,45 @@ function ProdukContent() {
     setLoading(false);
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 300;
+        const MAX_HEIGHT = 300;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        const dataUrl = canvas.toDataURL('image/webp', 0.8);
+        setFormData({ ...formData, image: dataUrl });
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -127,14 +168,15 @@ function ProdukContent() {
       category: formData.category,
       cost_price: Number(formData.cost_price), 
       selling_price: Number(formData.selling_price), 
-      stock: Number(formData.stock)
+      stock: Number(formData.stock),
+      image: formData.image
     };
     if (editingProductId) {
       await updateProduct(editingProductId, data);
     } else {
       await addProduct(data);
     }
-    setFormData({ name: '', barcode: '', category: 'Umum', cost_price: '', selling_price: '', stock: '' });
+    setFormData({ name: '', barcode: '', category: 'Umum', cost_price: '', selling_price: '', stock: '', image: '' });
     setEditingProductId(null);
     await loadProducts();
     setLoading(false);
@@ -148,7 +190,8 @@ function ProdukContent() {
       category: p.category || 'Umum',
       cost_price: p.cost_price.toString(),
       selling_price: p.selling_price.toString(),
-      stock: p.stock.toString()
+      stock: p.stock.toString(),
+      image: p.image || ''
     });
     setEditingProductId(p.id);
     setShowAddForm(true);
@@ -389,6 +432,19 @@ function ProdukContent() {
                 </button>
                 <h2 className="text-xl font-bold mb-6 text-gray-800 pr-10">{editingProductId ? '✏️ Edit Barang' : '📦 Tambah Barang'}</h2>
               <form onSubmit={handleAddSubmit} className="space-y-4">
+                <div className="flex gap-4 mb-2 items-center">
+                  <div className="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center border border-gray-200 shrink-0">
+                    {formData.image ? (
+                      <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-3xl text-gray-300">📷</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Foto Produk (Opsional)</label>
+                    <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition cursor-pointer" />
+                  </div>
+                </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Nama Barang</label>
                   <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl p-4 text-sm font-semibold text-gray-800 focus:outline-none transition" placeholder="Cth: Kopi Kapal Api" />
@@ -522,19 +578,24 @@ function ProdukContent() {
                   <option value="status_asc">Prioritas Status (Habis/Kritis Dulu)</option>
                   <option value="status_desc">Status (Aman Dulu)</option>
                 </select>
-                <div className="relative w-full md:w-auto flex-1">
-                  <input 
-                    type="text"
-                    placeholder="Cari produk..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 pr-10 text-sm focus:outline-none focus:border-primary transition"
-                  />
-                  {searchQuery && (
-                    <button type="button" onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full w-5 h-5 flex items-center justify-center transition">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                  )}
+                <div className="relative w-full md:w-auto flex-1 flex gap-2">
+                  <div className="relative flex-1">
+                    <input 
+                      type="text"
+                      placeholder="Cari produk..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 pr-10 text-sm focus:outline-none focus:border-primary transition"
+                    />
+                    {searchQuery && (
+                      <button type="button" onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full w-5 h-5 flex items-center justify-center transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    )}
+                  </div>
+                  <button type="button" onClick={() => setShowOCRSearch(true)} title="AI Scan Kemasan" className="shrink-0 bg-white border border-gray-200 hover:bg-blue-50 text-blue-600 font-bold px-3 rounded-xl shadow-sm transition flex items-center justify-center">
+                    ✨
+                  </button>
                 </div>
               </div>
             </div>
@@ -627,9 +688,20 @@ function ProdukContent() {
                           />
                         </td>
                         <td className="py-4">
-                          <div className="font-bold text-gray-800 text-sm">{p.name}</div>
-                          <div className="text-xs text-gray-400 font-medium mt-1">
-                            {p.category} {p.barcode && <span className="ml-2 font-mono bg-gray-100 px-1.5 py-0.5 rounded text-[10px]">📍 {p.barcode}</span>}
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 shrink-0 border border-gray-200 flex items-center justify-center">
+                              {p.image ? (
+                                <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-gray-300 text-xs">📷</span>
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-bold text-gray-800 text-sm">{p.name}</div>
+                              <div className="text-xs text-gray-400 font-medium mt-1">
+                                {p.category} {p.barcode && <span className="ml-2 font-mono bg-gray-100 px-1.5 py-0.5 rounded text-[10px]">📍 {p.barcode}</span>}
+                              </div>
+                            </div>
                           </div>
                         </td>
                         <td className="py-4">
@@ -941,6 +1013,17 @@ function ProdukContent() {
                 </Button>
               </div>
             </div>
+          )}
+
+          {showOCRSearch && (
+            <OCRScanner 
+              products={products}
+              onScanSuccess={(product) => {
+                setSearchQuery(product.name);
+                setShowOCRSearch(false);
+              }}
+              onClose={() => setShowOCRSearch(false)}
+            />
           )}
 
         </div>
