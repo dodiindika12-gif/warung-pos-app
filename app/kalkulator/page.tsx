@@ -74,6 +74,19 @@ export default function KalkulatorPage() {
     }
   };
 
+  const handlePercentage = () => {
+    try {
+      const val = parseFloat(display);
+      if (!isNaN(val)) {
+        // Format to avoid long floating point issues like 0.1 + 0.2
+        const result = parseFloat((val / 100).toFixed(8));
+        setDisplay(result.toString());
+      }
+    } catch (e) {
+      setDisplay('Error');
+    }
+  };
+
   return (
     <div className="flex w-full h-full p-0 md:p-8 overflow-y-auto pb-0 md:pb-8 items-center justify-center bg-gray-50/50">
       <div className="w-full h-full md:h-auto md:max-w-md mx-auto flex flex-col md:shadow-2xl md:rounded-[32px] overflow-hidden border-0 md:border border-gray-100 bg-white">
@@ -99,11 +112,14 @@ export default function KalkulatorPage() {
         {/* Keypad */}
         <div className="p-4 md:p-6 bg-gray-50/80 grid grid-cols-4 gap-2 md:gap-3 flex-1 md:flex-none pb-[10px] md:pb-6">
           {/* Row 1 */}
-          <Button onClick={handleClear} className="col-span-2 h-full md:h-16 rounded-2xl md:rounded-3xl bg-red-100 text-red-600 hover:bg-red-200 font-bold text-xl md:text-2xl shadow-sm border-0 transition-transform active:scale-95">
+          <Button onClick={handleClear} className="h-full md:h-16 rounded-2xl md:rounded-3xl bg-red-100 text-red-600 hover:bg-red-200 font-bold text-xl md:text-2xl shadow-sm border-0 transition-transform active:scale-95">
             AC
           </Button>
           <Button onClick={handleDelete} className="h-full md:h-16 rounded-2xl md:rounded-3xl bg-orange-100 text-orange-600 hover:bg-orange-200 font-bold text-xl md:text-2xl shadow-sm border-0 transition-transform active:scale-95">
             DEL
+          </Button>
+          <Button onClick={handlePercentage} className="h-full md:h-16 rounded-2xl md:rounded-3xl bg-blue-100 text-blue-600 hover:bg-blue-200 font-bold text-2xl md:text-3xl shadow-sm border-0 transition-transform active:scale-95">
+            %
           </Button>
           <Button onClick={() => handleOperator('/')} className="h-full md:h-16 rounded-2xl md:rounded-3xl bg-primary/10 text-primary hover:bg-primary/20 font-black text-3xl md:text-4xl shadow-sm border-0 transition-transform active:scale-95">
             ÷

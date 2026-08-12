@@ -4,6 +4,10 @@ Aplikasi kasir (Point of Sale) modern yang dirancang khusus untuk mempermudah ma
 
 ## Changelog & Version History
 
+### [Versi 1.7] - Pembaruan Kalkulator (Fitur Persen)
+- **Feature**: Menambahkan tombol Persentase (%) pada antarmuka Kalkulator. Tombol ini berfungsi membagi angka di layar dengan 100 secara instan, mempermudah kasir dalam menghitung diskon dan margin keuntungan dengan cepat.
+- **UI/UX**: Penyesuaian tata letak (grid) pada baris atas *keypad* kalkulator untuk mengakomodasi tombol persen secara rapi.
+
 ### [Versi 1.6] - Optimalisasi Barcode Scanner (Beep & Senter)
 - **Feature**: Pemindai Barcode kini dilengkapi dengan efek suara (Beep) instan setiap kali berhasil memindai produk, memberikan *feedback* audio layaknya mesin kasir fisik sungguhan.
 - **Feature**: Menambahkan tombol "Lampu Senter" pada jendela pemindai Barcode untuk mempermudah kasir memindai barang dalam kondisi minim cahaya (bergantung pada dukungan perangkat HP).
