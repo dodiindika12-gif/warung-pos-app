@@ -39,7 +39,7 @@ export default function BarcodeScanner({ onScanSuccess, onClose }: BarcodeScanne
     if (scannerRef.current) {
       try {
         await scannerRef.current.applyVideoConstraints({
-          advanced: [{ torch: !torchOn }]
+          advanced: [{ torch: !torchOn } as any]
         });
         setTorchOn(!torchOn);
       } catch (err) {
