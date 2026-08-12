@@ -122,9 +122,9 @@ async function loadProducts() {
             <button type="button" onClick={() => setShowScanner(true)} title="Scan Barcode" className="shrink-0 bg-white border border-gray-100 hover:bg-gray-50 text-gray-700 font-bold px-4 rounded-full shadow-sm transition flex items-center justify-center whitespace-nowrap">
               📷
             </button>
-            <button type="button" onClick={() => setShowOCR(true)} title="AI Scan Kemasan" className="shrink-0 bg-white border border-gray-100 hover:bg-blue-50 text-blue-600 font-bold px-4 rounded-full shadow-sm transition flex items-center justify-center whitespace-nowrap">
+            {/* <button type="button" onClick={() => setShowOCR(true)} title="AI Scan Kemasan" className="shrink-0 bg-white border border-gray-100 hover:bg-blue-50 text-blue-600 font-bold px-4 rounded-full shadow-sm transition flex items-center justify-center whitespace-nowrap">
               ✨
-            </button>
+            </button> */}
             <button type="button" onClick={() => router.push('/riwayat')} title="Riwayat Transaksi" className="shrink-0 bg-white border border-gray-100 hover:bg-gray-50 text-gray-500 font-bold px-4 rounded-full shadow-sm transition flex items-center justify-center whitespace-nowrap">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </button>
@@ -150,7 +150,7 @@ async function loadProducts() {
             />
           )}
 
-          {showOCR && (
+          {/* {showOCR && (
             <OCRScanner 
               products={products}
               onScanSuccess={(product) => {
@@ -160,7 +160,7 @@ async function loadProducts() {
               }}
               onClose={() => setShowOCR(false)}
             />
-          )}
+          )} */}
         </div>
 
         {/* Filter Kategori Desktop */}

@@ -593,9 +593,9 @@ function ProdukContent() {
                       </button>
                     )}
                   </div>
-                  <button type="button" onClick={() => setShowOCRSearch(true)} title="AI Scan Kemasan" className="shrink-0 bg-white border border-gray-200 hover:bg-blue-50 text-blue-600 font-bold px-3 rounded-xl shadow-sm transition flex items-center justify-center">
+                  {/* <button type="button" onClick={() => setShowOCRSearch(true)} title="AI Scan Kemasan" className="shrink-0 bg-white border border-gray-200 hover:bg-blue-50 text-blue-600 font-bold px-3 rounded-xl shadow-sm transition flex items-center justify-center">
                     ✨
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
@@ -1015,7 +1015,7 @@ function ProdukContent() {
             </div>
           )}
 
-          {showOCRSearch && (
+          {/* {showOCRSearch && (
             <OCRScanner 
               products={products}
               onScanSuccess={(product) => {
@@ -1024,7 +1024,7 @@ function ProdukContent() {
               }}
               onClose={() => setShowOCRSearch(false)}
             />
-          )}
+          )} */}
 
         </div>
       </div>

@@ -10,7 +10,43 @@ interface BarcodeScannerProps {
 
 export default function BarcodeScanner({ onScanSuccess, onClose }: BarcodeScannerProps) {
   const [error, setError] = useState<string>('');
+  const [torchOn, setTorchOn] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+
+  const playBeep = () => {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = 800; // Nada
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      osc.start();
+      setTimeout(() => {
+        osc.stop();
+        ctx.close();
+      }, 150);
+    } catch (e) {
+      console.error("Audio API tidak disupport");
+    }
+  };
+
+  const toggleTorch = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.applyVideoConstraints({
+          advanced: [{ torch: !torchOn }]
+        });
+        setTorchOn(!torchOn);
+      } catch (err) {
+        console.warn("Gagal menyalakan lampu flash/senter. Perangkat mungkin tidak mendukung.", err);
+      }
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -36,13 +72,13 @@ export default function BarcodeScanner({ onScanSuccess, onClose }: BarcodeScanne
         await html5QrCode.start(
           { facingMode: { exact: "environment" } },
           {
-            fps: 30,
-            qrbox: { width: 300, height: 150 },
-            aspectRatio: 1.0,
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
             disableFlip: false,
           },
           (decodedText) => {
             if (isMounted) {
+              playBeep();
               onScanSuccess(decodedText);
             }
           },
@@ -53,8 +89,13 @@ export default function BarcodeScanner({ onScanSuccess, onClose }: BarcodeScanne
             // Fallback to regular environment if exact fails
             await html5QrCode.start(
                 { facingMode: "environment" },
-                { fps: 30, qrbox: { width: 300, height: 150 }, aspectRatio: 1.0, disableFlip: false },
-                (decodedText) => { if (isMounted) onScanSuccess(decodedText); },
+                { fps: 10, qrbox: { width: 250, height: 250 }, disableFlip: false },
+                (decodedText) => { 
+                  if (isMounted) {
+                    playBeep();
+                    onScanSuccess(decodedText); 
+                  }
+                },
                 () => {}
             );
         });
@@ -99,8 +140,14 @@ export default function BarcodeScanner({ onScanSuccess, onClose }: BarcodeScanne
           )}
         </div>
         
-        <div className="p-5 text-center font-medium text-sm text-gray-500 bg-gray-50">
-          Arahkan garis barcode produk ke dalam kotak area pemindai
+        <div className="p-5 text-center font-medium text-sm text-gray-500 bg-gray-50 flex flex-col items-center gap-3">
+          <p>Arahkan garis barcode produk ke dalam kotak area pemindai</p>
+          <button 
+            onClick={toggleTorch}
+            className={`px-4 py-2 rounded-full font-bold flex items-center gap-2 transition ${torchOn ? 'bg-yellow-100 text-yellow-600 border border-yellow-200' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
+          >
+            {torchOn ? '💡 Matikan Senter' : '💡 Nyalakan Senter'}
+          </button>
         </div>
       </div>
     </div>

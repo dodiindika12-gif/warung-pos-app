@@ -4,6 +4,11 @@ Aplikasi kasir (Point of Sale) modern yang dirancang khusus untuk mempermudah ma
 
 ## Changelog & Version History
 
+### [Versi 1.6] - Optimalisasi Barcode Scanner (Beep & Senter)
+- **Feature**: Pemindai Barcode kini dilengkapi dengan efek suara (Beep) instan setiap kali berhasil memindai produk, memberikan *feedback* audio layaknya mesin kasir fisik sungguhan.
+- **Feature**: Menambahkan tombol "Lampu Senter" pada jendela pemindai Barcode untuk mempermudah kasir memindai barang dalam kondisi minim cahaya (bergantung pada dukungan perangkat HP).
+- **Update**: Menyembunyikan sementara fitur percobaan AI Scanner Kemasan (OCR) dari antarmuka utama Kasir dan Master Data untuk difokuskan kembali pada pemindaian barcode yang lebih stabil dan cepat di lapangan.
+
 ### [Versi 1.5] - Foto Produk & AI Scanner Kemasan (OCR)
 - **Feature**: Mengizinkan penambahan foto pada setiap barang di Master Produk. Foto akan dikompres dan disimpan menggunakan format Base64 secara aman di database.
 - **Feature**: AI Scanner Kemasan (Optical Character Recognition) menggunakan Tesseract.js di menu Kasir dan Produk yang memungkinkan kasir menscan teks kemasan barang secara *real-time* via kamera tanpa perlu repot menekan tombol *shutter*.
