@@ -4,6 +4,9 @@ Aplikasi kasir (Point of Sale) modern yang dirancang khusus untuk mempermudah ma
 
 ## Changelog & Version History
 
+### [Versi 1.8] - Format Angka Kalkulator Standar Indonesia
+- **Feature/UI**: Mengubah format tampilan angka pada Kalkulator. Layar kini otomatis memberikan pemisah ribuan berupa titik (`.`) dan mengubah lambang desimal menjadi koma (`,`) (misal: `1.000,50`) agar lebih nyaman dan familier di mata pengguna Indonesia, tanpa merusak nilai matematika murni di latar belakang.
+
 ### [Versi 1.7] - Pembaruan Kalkulator (Fitur Persen)
 - **Feature**: Menambahkan tombol Persentase (%) pada antarmuka Kalkulator. Tombol ini berfungsi membagi angka di layar dengan 100 secara instan, mempermudah kasir dalam menghitung diskon dan margin keuntungan dengan cepat.
 - **UI/UX**: Penyesuaian tata letak (grid) pada baris atas *keypad* kalkulator untuk mengakomodasi tombol persen secara rapi.

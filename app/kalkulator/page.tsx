@@ -87,6 +87,25 @@ export default function KalkulatorPage() {
     }
   };
 
+  // Helper untuk format tampilan angka ke standar Indonesia (1.000,50)
+  const formatForDisplay = (str: string) => {
+    if (str === 'Error' || !str) return str;
+    const parts = str.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return parts.join(',');
+  };
+
+  // Helper untuk format persamaan matematika (1.000 + 5.000 =)
+  const formatEquationForDisplay = (eqStr: string) => {
+    if (!eqStr) return eqStr;
+    return eqStr.split(' ').map(token => {
+      if (/^\d/.test(token)) {
+        return formatForDisplay(token);
+      }
+      return token;
+    }).join(' ');
+  };
+
   return (
     <div className="flex w-full h-full p-0 md:p-8 overflow-y-auto pb-0 md:pb-8 items-center justify-center bg-gray-50/50">
       <div className="w-full h-full md:h-auto md:max-w-md mx-auto flex flex-col md:shadow-2xl md:rounded-[32px] overflow-hidden border-0 md:border border-gray-100 bg-white">
@@ -102,10 +121,10 @@ export default function KalkulatorPage() {
         {/* Display Area */}
         <div className="p-6 md:p-8 bg-white flex flex-col justify-end shrink-0 h-36 md:h-40 border-b border-gray-50">
           <div className="text-lg md:text-xl font-semibold text-gray-400 text-right h-8 overflow-hidden tracking-wider mb-2">
-            {equation}
+            {formatEquationForDisplay(equation)}
           </div>
           <div className="text-5xl md:text-6xl font-black text-gray-800 text-right truncate tracking-tight">
-            {display}
+            {formatForDisplay(display)}
           </div>
         </div>
 
@@ -154,9 +173,9 @@ export default function KalkulatorPage() {
             0
           </Button>
           <Button onClick={handleDecimal} variant="outline" className="h-full md:h-16 rounded-2xl md:rounded-3xl font-bold text-2xl md:text-3xl text-gray-700 bg-white shadow-sm border-gray-100 hover:bg-gray-50 transition-transform active:scale-95">
-            .
+            ,
           </Button>
-          <Button onClick={handleCalculate} className="h-full md:h-16 rounded-2xl md:rounded-3xl bg-primary text-white hover:bg-primary/90 font-black text-3xl md:text-4xl shadow-md shadow-primary/30 border-0 transition-transform active:scale-95">
+          <Button onClick={handleCalculate} className="h-full md:h-16 rounded-2xl md:rounded-3xl bg-primary text-primary-foreground hover:bg-primary/90 font-black text-3xl md:text-4xl shadow-md shadow-primary/30 border-0 transition-transform active:scale-95">
             =
           </Button>
         </div>
