@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getDashboardStats, getChartData } from '../actions';
+import { getDashboardStats, getChartData, getTimeBasedSales } from '../actions';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import LoadingAnimation from '../components/LoadingAnimation';
 
 export default function LaporanPage() {
   const [stats, setStats] = useState<any>(null);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [timeReportData, setTimeReportData] = useState<any[]>([]);
+  const [showTimeModal, setShowTimeModal] = useState(false);
   
   // Date states, default to today
   const todayStr = new Date(new Date().getTime() + 8 * 3600 * 1000).toISOString().split('T')[0];
@@ -25,8 +27,10 @@ export default function LaporanPage() {
     try {
       const statsData = await getDashboardStats(startDate, endDate);
       const chart = await getChartData(startDate, endDate);
+      const timeData = await getTimeBasedSales(startDate, endDate);
       setStats(statsData);
       setChartData(chart);
+      setTimeReportData(timeData);
     } catch (e) {
       console.error(e);
     }
@@ -75,6 +79,12 @@ export default function LaporanPage() {
           <div>
             <h1 className="text-3xl font-black text-gray-800">📈 Dashboard Analytics</h1>
             <p className="text-gray-500 font-medium mt-1">Laporan finansial komprehensif</p>
+            <button 
+              onClick={() => setShowTimeModal(true)}
+              className="mt-4 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition"
+            >
+              🕒 Laporan Dasar Waktu
+            </button>
           </div>
           <div className="flex flex-col items-end gap-3 w-full md:w-auto">
             <div className="flex items-center justify-between w-full md:w-auto gap-2">
@@ -271,6 +281,122 @@ export default function LaporanPage() {
         </div>
 
       </div>
+
+      {/* Time Based Sales Modal */}
+      {showTimeModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-[32px] w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+            <div className="p-6 md:p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <div>
+                <h2 className="text-2xl font-black text-gray-800">🕒 Laporan Penjualan Dasar Waktu</h2>
+                <p className="text-gray-500 font-medium mt-1 text-sm">Periode: {new Date(startDate).toLocaleDateString('id-ID')} - {new Date(endDate).toLocaleDateString('id-ID')}</p>
+              </div>
+              <button 
+                onClick={() => setShowTimeModal(false)}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-700 w-10 h-10 rounded-full flex items-center justify-center font-bold transition"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-6 md:p-8 overflow-y-auto bg-gray-50/30 flex-1">
+              {(() => {
+                const periods = {
+                  pagi: { revenue: 0, trx: 0 },
+                  siangSore: { revenue: 0, trx: 0 },
+                  malam: { revenue: 0, trx: 0 },
+                  diniHari: { revenue: 0, trx: 0 }
+                };
+
+                timeReportData.forEach(d => {
+                  const hr = parseInt(d.hour);
+                  if (hr >= 6 && hr < 12) {
+                    periods.pagi.revenue += d.total_revenue;
+                    periods.pagi.trx += d.total_trx;
+                  } else if (hr >= 12 && hr < 18) {
+                    periods.siangSore.revenue += d.total_revenue;
+                    periods.siangSore.trx += d.total_trx;
+                  } else if (hr >= 18 && hr <= 23) {
+                    periods.malam.revenue += d.total_revenue;
+                    periods.malam.trx += d.total_trx;
+                  } else {
+                    periods.diniHari.revenue += d.total_revenue;
+                    periods.diniHari.trx += d.total_trx;
+                  }
+                });
+
+                return (
+                  <div className="space-y-8">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <span className="bg-primary/10 text-primary p-1.5 rounded-lg">📊</span> Ringkasan Per Periode
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white p-5 rounded-2xl border border-blue-100 shadow-sm relative overflow-hidden">
+                          <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 bg-blue-50 rounded-full opacity-50 z-0"></div>
+                          <p className="text-xs font-bold text-blue-500 uppercase tracking-wide relative z-10">Pagi (06:00 - 12:00)</p>
+                          <p className="text-xl font-black text-gray-800 mt-2 relative z-10">Rp {periods.pagi.revenue.toLocaleString('id-ID')}</p>
+                          <p className="text-sm font-medium text-gray-500 relative z-10 mt-1">{periods.pagi.trx} Transaksi</p>
+                        </div>
+                        <div className="bg-white p-5 rounded-2xl border border-orange-100 shadow-sm relative overflow-hidden">
+                          <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 bg-orange-50 rounded-full opacity-50 z-0"></div>
+                          <p className="text-xs font-bold text-orange-500 uppercase tracking-wide relative z-10">Siang & Sore (12:00 - 18:00)</p>
+                          <p className="text-xl font-black text-gray-800 mt-2 relative z-10">Rp {periods.siangSore.revenue.toLocaleString('id-ID')}</p>
+                          <p className="text-sm font-medium text-gray-500 relative z-10 mt-1">{periods.siangSore.trx} Transaksi</p>
+                        </div>
+                        <div className="bg-white p-5 rounded-2xl border border-indigo-100 shadow-sm relative overflow-hidden">
+                          <div className="absolute top-0 right-0 -mr-4 -mt-4 w-16 h-16 bg-indigo-50 rounded-full opacity-50 z-0"></div>
+                          <p className="text-xs font-bold text-indigo-500 uppercase tracking-wide relative z-10">Malam (18:00 - 24:00)</p>
+                          <p className="text-xl font-black text-gray-800 mt-2 relative z-10">Rp {periods.malam.revenue.toLocaleString('id-ID')}</p>
+                          <p className="text-sm font-medium text-gray-500 relative z-10 mt-1">{periods.malam.trx} Transaksi</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <span className="bg-green-100 text-green-600 p-1.5 rounded-lg">⏱️</span> Rincian Per Jam (WITA)
+                      </h3>
+                      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-gray-50 border-b border-gray-100">
+                                <th className="p-4 text-xs font-bold text-gray-500 uppercase">Waktu (Jam)</th>
+                                <th className="p-4 text-xs font-bold text-gray-500 uppercase">Total Penjualan</th>
+                                <th className="p-4 text-xs font-bold text-gray-500 uppercase">Jumlah Transaksi</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {timeReportData.length === 0 ? (
+                                <tr>
+                                  <td colSpan={3} className="p-8 text-center text-gray-400 font-medium">Tidak ada data transaksi.</td>
+                                </tr>
+                              ) : (
+                                timeReportData.map((d, i) => (
+                                  <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition">
+                                    <td className="p-4">
+                                      <div className="font-bold text-gray-800 bg-gray-100 px-3 py-1 rounded-lg inline-block text-sm">
+                                        {d.hour}:00 - {d.hour}:59
+                                      </div>
+                                    </td>
+                                    <td className="p-4 font-black text-green-600">Rp {d.total_revenue.toLocaleString('id-ID')}</td>
+                                    <td className="p-4 font-bold text-gray-600">{d.total_trx} Trx</td>
+                                  </tr>
+                                ))
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

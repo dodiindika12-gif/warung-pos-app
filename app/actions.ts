@@ -8,7 +8,11 @@ import { sendWebhook } from '@/lib/hermes';
 // MODUL PRODUK & INVENTARIS
 // ==========================================
 export async function getProducts() {
-  const { rows } = await turso.execute('SELECT * FROM products ORDER BY name ASC');
+  const { rows } = await turso.execute(`
+    SELECT id, name, barcode, category, cost_price, selling_price, stock, 
+    CASE WHEN image IS NOT NULL AND image != '' THEN '/api/product-image/' || id ELSE NULL END as image 
+    FROM products ORDER BY name ASC
+  `);
   return JSON.parse(JSON.stringify(rows));
 }
 
@@ -31,10 +35,17 @@ export async function addProduct(data: { name: string; barcode: string; category
 }
 
 export async function updateProduct(id: number, data: { name: string; barcode: string; category: string; cost_price: number; selling_price: number; stock: number; image?: string }) {
-  await turso.execute({
-    sql: 'UPDATE products SET name = ?, barcode = ?, category = ?, cost_price = ?, selling_price = ?, stock = ?, image = ? WHERE id = ?',
-    args: [data.name, data.barcode, data.category, data.cost_price, data.selling_price, data.stock, data.image || null, id]
-  });
+  if (data.image && data.image.startsWith('/api/product-image/')) {
+    await turso.execute({
+      sql: 'UPDATE products SET name = ?, barcode = ?, category = ?, cost_price = ?, selling_price = ?, stock = ? WHERE id = ?',
+      args: [data.name, data.barcode, data.category, data.cost_price, data.selling_price, data.stock, id]
+    });
+  } else {
+    await turso.execute({
+      sql: 'UPDATE products SET name = ?, barcode = ?, category = ?, cost_price = ?, selling_price = ?, stock = ?, image = ? WHERE id = ?',
+      args: [data.name, data.barcode, data.category, data.cost_price, data.selling_price, data.stock, data.image || null, id]
+    });
+  }
   return { success: true };
 }
 
@@ -96,7 +107,8 @@ export async function processOpname(items: {id: number, realStock: number}[]) {
 export async function getProductsWithRecommendation() {
   const { rows } = await turso.execute(`
     SELECT 
-      p.*,
+      p.id, p.name, p.barcode, p.category, p.cost_price, p.selling_price, p.stock,
+      CASE WHEN p.image IS NOT NULL AND p.image != '' THEN '/api/product-image/' || p.id ELSE NULL END as image,
       COALESCE(SUM(ti.quantity), 0) as sold_last_7_days
     FROM products p
     LEFT JOIN transaction_items ti ON p.id = ti.product_id 
@@ -282,6 +294,29 @@ export async function processBulkPurchase(invoiceTitle: string, supplier: string
 // ==========================================
 // MODUL LAPORAN & ANALISIS (DENGAN PROFIT)
 // ==========================================
+
+export async function getTimeBasedSales(startDate?: string, endDate?: string) {
+  let dateFilter = "date(created_at, '+8 hours') = date('now', '+8 hours')";
+  
+  if (startDate && endDate) {
+    dateFilter = `date(created_at, '+8 hours') BETWEEN date('${startDate}') AND date('${endDate}')`;
+  }
+
+  const query = `
+    SELECT 
+      strftime('%H', created_at, '+8 hours') as hour,
+      SUM(total_amount) as total_revenue,
+      COUNT(id) as total_trx
+    FROM transactions
+    WHERE ${dateFilter}
+    GROUP BY hour
+    ORDER BY hour ASC
+  `;
+
+  const { rows } = await turso.execute(query);
+  return JSON.parse(JSON.stringify(rows));
+}
+
 export async function getDashboardStats(startDate?: string, endDate?: string) {
   let dateFilter = "date(created_at, '+8 hours') = date('now', '+8 hours')";
   let tDateFilter = "date(t.created_at, '+8 hours') = date('now', '+8 hours')";
