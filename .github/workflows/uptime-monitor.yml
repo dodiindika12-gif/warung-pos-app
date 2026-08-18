@@ -1,0 +1,44 @@
+name: Uptime Monitor
+
+on:
+  schedule:
+    # Berjalan setiap 5 menit
+    - cron: '*/5 * * * *'
+  # Memungkinkan Anda untuk menjalankan script secara manual dari tab Actions
+  workflow_dispatch: 
+
+jobs:
+  check-servers:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        server:
+          # URL server n8n yang akan dicek
+          - name: Server Kantor
+            url: https://n8n.absgroup.biz.id/
+          - name: Server Rumah
+            url: https://n8n.indika.web.id/
+      # Supaya jika server pertama down, github action tetap mengecek server kedua
+      fail-fast: false 
+
+    steps:
+      - name: Pengecekan Status Server
+        id: check
+        run: |
+          # Melakukan request HTTP dan mengambil status code
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" "${{ matrix.server.url }}" --max-time 15)
+          echo "Status untuk ${{ matrix.server.name }}: $HTTP_STATUS"
+          
+          # Jika statusnya bukan 200 (OK), anggap server bermasalah (termasuk 000 untuk timeout)
+          if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 301 ] && [ "$HTTP_STATUS" -ne 302 ]; then
+            echo "Server offline atau mengembalikan error."
+            exit 1
+          fi
+
+      - name: Kirim Notifikasi WhatsApp via Fonnte
+        if: failure() # Langkah ini HANYA dijalankan jika pengecekan di atas GAGAL (exit 1)
+        run: |
+          curl -X POST https://api.fonnte.com/send \
+          -H "Authorization: __n8n_BLANK_VALUE_e5362baf-c777-4d57-a609-6eaf1f9e87f6" \
+          -F "target=62818372924" \
+          -F "message=⚠️ Peringatan: *${{ matrix.server.name }}* sedang *OFFLINE*!"
