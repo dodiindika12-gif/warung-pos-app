@@ -4,6 +4,10 @@ Aplikasi kasir (Point of Sale) modern yang dirancang khusus untuk mempermudah ma
 
 ## Changelog & Version History
 
+### [Versi 1.10] - Uptime Monitoring via GitHub Actions
+- **Feature/DevOps**: Menambahkan GitHub Actions workflow untuk memonitor uptime server secara otomatis (Server Kantor dan Server Rumah) setiap 5 menit.
+- **Feature/Integration**: Otomasi pengiriman notifikasi ke WhatsApp menggunakan Fonnte jika salah satu server terdeteksi offline.
+
 ### [Versi 1.9] - Laporan Dasar Waktu & Optimasi Loading Foto
 - **Feature/Report**: Menambahkan tombol "Laporan Dasar Waktu" di halaman Laporan (Dashboard Analytics). Fitur ini menampilkan *pop-up modal* yang menyajikan data total transaksi dan pendapatan yang dikelompokkan secara dinamis berdasarkan jam kerja dan periode waktu dalam zona waktu WITA (Pagi: 06:00 - 12:00, Siang & Sore: 12:00 - 18:00, Malam: 18:00 - 24:00).
 - **Optimization**: Memperbaiki isu pemuatan data aplikasi (loading) yang lambat (memakan waktu hingga 3-5 detik) pada saat pertama kali dimuat. Gambar barang kini di-*fetch* secara *lazy loading* melalui jalur API mandiri (`/api/product-image/[id]`), sehingga query database utama tidak lagi menahan proses render aplikasi karena besarnya payload *Base64 string* dari foto.
