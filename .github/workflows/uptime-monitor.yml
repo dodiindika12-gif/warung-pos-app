@@ -39,6 +39,6 @@ jobs:
         if: failure() # Langkah ini HANYA dijalankan jika pengecekan di atas GAGAL (exit 1)
         run: |
           curl -X POST https://api.fonnte.com/send \
-          -H "Authorization: __n8n_BLANK_VALUE_e5362baf-c777-4d57-a609-6eaf1f9e87f6" \
+          -H "Authorization: 53rZtoMU78KNQN2sG9Fh" \
           -F "target=62818372924" \
           -F "message=⚠️ Peringatan: *${{ matrix.server.name }}* sedang *OFFLINE*!"
