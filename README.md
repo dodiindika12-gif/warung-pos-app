@@ -4,6 +4,18 @@ Aplikasi kasir (Point of Sale) modern yang dirancang khusus untuk mempermudah ma
 
 ## Changelog & Version History
 
+### [Versi 1.11] - Integrasi Mobile Native (Expo SDK 57), Barcode Scanner Kamera & Gateway Vercel (Current Version)
+- **Fitur Baru (Mobile Native - Expo SDK 57)**:
+  - **Barcode Scanner Kamera Terintegrasi**: Menggunakan `expo-camera` (`CameraView`) untuk memindai barcode fisik langsung dari kamera ponsel Android/iOS di Menu Kasir (tambah ke keranjang otomatis), Master Produk (pencarian katalog & input form barang baru), serta Stock Opname & Kulakan.
+  - **Menu Kasir (POS) Mobile**: Keranjang belanja interaktif, validasi stok, sistem pembayaran Tunai (kalkulasi kembalian otomatis & pecahan uang pas) dan QRIS, serta struk transaksi digital.
+  - **Master Produk & Inventaris Mobile**: Form tambah/edit produk dengan scanner barcode kamera, manajemen kategori, stock opname fisik vs sistem, serta riwayat mutasi keluar-masuk stok.
+  - **Pembelian / Kulakan Mobile**: Pembuatan faktur kulakan multi-item dengan scanner barcode kamera, diskon grosir, pembaruan otomatis harga modal (HPP) & harga jual, serta riwayat faktur.
+  - **Laporan & Analytics Keuangan Mobile**: Riwayat transaksi kasir, rincian belanja, fitur pembatalan / retur transaksi (otomatis mengembalikan stok), metrik Omzet & Laba Bersih, breakdown Tunai vs QRIS, dan pencatatan biaya operasional.
+  - **Daftar Belanja & Pengaturan API Dinamis**: Rekomendasi belanja otomatis dari analisis stok kritis, checklist belanja, serta konfigurasi server API dinamis dengan preset produksi Vercel (`https://kasir.indika.web.id/api/mobile`), Local Wi-Fi, dan Localhost.
+- **Backend & Gateway API**:
+  - Dukungan full CORS (`Access-Control-Allow-Origin: *`) dan preflight `OPTIONS` (204) pada endpoint `/api/mobile` agar kompatibel di semua lingkungan (Web, Mobile Expo Go, dan Cloud Vercel).
+  - Penambahan health check `/api/mobile` (GET & POST ping).
+
 ### [Versi 1.10] - Uptime Monitoring via GitHub Actions
 - **Feature/DevOps**: Menambahkan GitHub Actions workflow untuk memonitor uptime server secara otomatis (Server Kantor dan Server Rumah) setiap 5 menit.
 - **Feature/Integration**: Otomasi pengiriman notifikasi ke WhatsApp menggunakan Fonnte jika salah satu server terdeteksi offline.
@@ -62,3 +74,25 @@ Rilis ini merupakan peluncuran awal aplikasi Kasir dengan sekumpulan fitur esens
 - **Cetak Label Harga (Massal & Satuan)**: Fitur ekspor/print label harga barang untuk ditaruh pada rak warung, mendukung format pencetakan cetak massal (A4).
 - **Animasi Loading Global**: Seluruh transisi data dan _loading state_ di dalam aplikasi diseragamkan menggunakan animasi Lottie yang interaktif dan nyaman dipandang.
 - **Desain 100% Mobile Friendly**: Semua tabel data yang berat diubah menjadi bentuk Kartu (Card Layout) atau dibuat _horizontally scrollable_ di perangkat seluler agar sangat nyaman dioperasikan oleh kasir melalui HP/Tablet.
+
+---
+
+## Cara Menjalankan Aplikasi di Lokal
+
+1. Instalasi dependensi:
+```bash
+npm install
+```
+
+2. Konfigurasi Database (Turso):
+Pastikan Anda sudah memiliki kredensial Turso. Buat file `.env` (berkaca pada `.env.example`) dan isi:
+```env
+TURSO_DATABASE_URL=libsql://[NAMA_DB_ANDA].turso.io
+TURSO_AUTH_TOKEN=[TOKEN_ANDA]
+```
+
+3. Jalankan server lokal:
+```bash
+npm run dev
+```
+Akses di [http://localhost:3000](http://localhost:3000)
