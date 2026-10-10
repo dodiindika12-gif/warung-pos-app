@@ -9,6 +9,8 @@ import PembelianScreen from './src/screens/PembelianScreen';
 import LaporanScreen from './src/screens/LaporanScreen';
 import BelanjaScreen from './src/screens/BelanjaScreen';
 
+import { Theme } from './src/theme';
+
 const Tab = createBottomTabNavigator();
 
 export default function App() {
@@ -30,19 +32,24 @@ export default function App() {
               return <ListTodo color={color} size={iconSize} />;
             }
           },
-          tabBarActiveTintColor: '#2563EB',
-          tabBarInactiveTintColor: '#94A3B8',
+          tabBarActiveTintColor: Theme.colors.tertiary,
+          tabBarInactiveTintColor: Theme.colors.textMuted,
           tabBarStyle: {
-            backgroundColor: '#FFFFFF',
-            borderTopColor: '#E2E8F0',
+            backgroundColor: Theme.colors.neutral,
+            borderTopColor: Theme.colors.border,
             borderTopWidth: 1,
-            height: 62,
+            height: 64,
             paddingBottom: 8,
-            paddingTop: 6,
+            paddingTop: 8,
+            shadowColor: Theme.colors.primary,
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.04,
+            shadowRadius: 8,
+            elevation: 4,
           },
           tabBarLabelStyle: {
             fontSize: 11,
-            fontWeight: '700',
+            fontWeight: '600',
           },
           headerShown: false,
         })}

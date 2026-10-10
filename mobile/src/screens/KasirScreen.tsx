@@ -33,6 +33,7 @@ import {
 import { callAction } from '../api';
 import { Product, Category, CartItem } from '../types';
 import BarcodeScannerModal from '../components/BarcodeScannerModal';
+import { Theme } from '../theme';
 
 export default function KasirScreen() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -409,7 +410,7 @@ export default function KasirScreen() {
       {/* Product Grid */}
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#2563EB" />
+          <ActivityIndicator size="large" color={Theme.colors.tertiary} />
           <Text style={styles.loadingText}>Memuat katalog barang...</Text>
         </View>
       ) : (
@@ -429,8 +430,8 @@ export default function KasirScreen() {
           ListEmptyComponent={
             errorMessage ? (
               <View style={styles.emptyContainer}>
-                <AlertTriangle size={48} color="#EF4444" />
-                <Text style={[styles.emptyTitle, { color: '#EF4444' }]}>Gagal Terhubung ke Server</Text>
+                <AlertTriangle size={48} color={Theme.colors.danger} />
+                <Text style={[styles.emptyTitle, { color: Theme.colors.danger }]}>Gagal Terhubung ke Server</Text>
                 <Text style={styles.emptyDesc}>{errorMessage}</Text>
                 <TouchableOpacity
                   style={[styles.floatingPayButton, { marginTop: 14, paddingHorizontal: 20 }]}
@@ -441,7 +442,7 @@ export default function KasirScreen() {
               </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <Package size={48} color="#CBD5E1" />
+                <Package size={48} color={Theme.colors.textLight} />
                 <Text style={styles.emptyTitle}>Produk Tidak Ditemukan</Text>
                 <Text style={styles.emptyDesc}>
                   {search ? 'Tidak ada produk yang cocok dengan pencarian.' : 'Katalog kosong atau periksa filter kategori.'}
@@ -465,7 +466,7 @@ export default function KasirScreen() {
             style={styles.floatingPayButton}
             onPress={() => setIsCartModalVisible(true)}
           >
-            <ShoppingCart size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+            <ShoppingCart size={18} color={Theme.colors.neutral} style={{ marginRight: 6 }} />
             <Text style={styles.floatingPayButtonText}>Lihat Keranjang</Text>
           </TouchableOpacity>
         </View>
@@ -482,24 +483,24 @@ export default function KasirScreen() {
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <ShoppingCart size={22} color="#1E293B" style={{ marginRight: 8 }} />
+                <ShoppingCart size={22} color={Theme.colors.textPrimary} style={{ marginRight: 8 }} />
                 <Text style={styles.modalTitle}>Keranjang Belanja</Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 {cart.length > 0 && (
                   <TouchableOpacity onPress={clearCart}>
-                    <RotateCcw size={20} color="#EF4444" />
+                    <RotateCcw size={20} color={Theme.colors.danger} />
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity onPress={() => setIsCartModalVisible(false)}>
-                  <X size={24} color="#64748B" />
+                  <X size={24} color={Theme.colors.textMuted} />
                 </TouchableOpacity>
               </View>
             </View>
 
             {cart.length === 0 ? (
               <View style={styles.emptyCartBox}>
-                <ShoppingCart size={54} color="#CBD5E1" />
+                <ShoppingCart size={54} color={Theme.colors.textLight} />
                 <Text style={styles.emptyCartText}>Keranjang masih kosong</Text>
                 <Text style={styles.emptyCartSub}>
                   Pilih produk dari katalog untuk memulai transaksi
@@ -519,7 +520,7 @@ export default function KasirScreen() {
                       <Text style={styles.cartItemSubtotal}>
                         Total: Rp{' '}
                         {(item.selling_price * item.quantity).toLocaleString(
-                          'id-ID'
+                            'id-ID'
                         )}
                       </Text>
                     </View>
@@ -529,20 +530,20 @@ export default function KasirScreen() {
                         style={styles.qtyBtn}
                         onPress={() => updateQuantity(item.id, -1)}
                       >
-                        <Minus size={16} color="#1E293B" />
+                        <Minus size={16} color={Theme.colors.textPrimary} />
                       </TouchableOpacity>
                       <Text style={styles.cartQtyText}>{item.quantity}</Text>
                       <TouchableOpacity
                         style={styles.qtyBtn}
                         onPress={() => updateQuantity(item.id, 1)}
                       >
-                        <Plus size={16} color="#1E293B" />
+                        <Plus size={16} color={Theme.colors.textPrimary} />
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.deleteBtn}
                         onPress={() => removeFromCart(item.id)}
                       >
-                        <Trash2 size={18} color="#EF4444" />
+                        <Trash2 size={18} color={Theme.colors.danger} />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -585,7 +586,7 @@ export default function KasirScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Pembayaran</Text>
               <TouchableOpacity onPress={() => setIsCheckoutModalVisible(false)}>
-                <X size={24} color="#64748B" />
+                <X size={24} color={Theme.colors.textMuted} />
               </TouchableOpacity>
             </View>
 
@@ -610,7 +611,7 @@ export default function KasirScreen() {
                 >
                   <Banknote
                     size={22}
-                    color={paymentMethod === 'Tunai' ? '#2563EB' : '#64748B'}
+                    color={paymentMethod === 'Tunai' ? Theme.colors.tertiary : Theme.colors.textMuted}
                   />
                   <Text
                     style={[
@@ -631,7 +632,7 @@ export default function KasirScreen() {
                 >
                   <CreditCard
                     size={22}
-                    color={paymentMethod === 'QRIS' ? '#2563EB' : '#64748B'}
+                    color={paymentMethod === 'QRIS' ? Theme.colors.tertiary : Theme.colors.textMuted}
                   />
                   <Text
                     style={[
@@ -811,21 +812,23 @@ export default function KasirScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Theme.colors.background,
   },
   scanBtn: {
-    padding: 6,
-    backgroundColor: '#1E293B',
-    borderRadius: 8,
-    marginLeft: 4,
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: Theme.radius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+    marginLeft: 6,
   },
   header: {
-    backgroundColor: '#1E293B',
+    backgroundColor: Theme.colors.primary, // #1A1A1A off-black
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingBottom: 18,
+    borderBottomLeftRadius: Theme.radius.lg,
+    borderBottomRightRadius: Theme.radius.lg,
   },
   headerTop: {
     flexDirection: 'row',
@@ -834,21 +837,20 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#F8FAFC',
-    letterSpacing: 0.5,
+    ...Theme.typography.display,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
     marginTop: 2,
   },
   cartButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#334155',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -857,36 +859,38 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -4,
     right: -4,
-    backgroundColor: '#EF4444',
-    borderRadius: 10,
+    backgroundColor: Theme.colors.danger,
+    borderRadius: Theme.radius.pill,
     paddingHorizontal: 6,
     paddingVertical: 2,
     minWidth: 20,
     alignItems: 'center',
   },
   cartBadgeText: {
-    color: '#FFFFFF',
+    color: Theme.colors.neutral,
     fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F172A',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: Theme.radius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
     paddingHorizontal: 12,
     height: 44,
   },
   searchInput: {
     flex: 1,
-    color: '#FFFFFF',
+    color: Theme.colors.neutral,
     fontSize: 14,
   },
   categoryScrollWrapper: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Theme.colors.neutral,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: Theme.colors.border,
   },
   categoryScroll: {
     paddingHorizontal: 16,
@@ -895,22 +899,22 @@ const styles = StyleSheet.create({
   catPill: {
     paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
+    borderRadius: Theme.radius.pill,
+    backgroundColor: Theme.colors.backgroundAlt,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Theme.colors.border,
   },
   catPillActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: Theme.colors.primary,
+    borderColor: Theme.colors.primary,
   },
   catPillText: {
     fontSize: 13,
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
     fontWeight: '600',
   },
   catPillTextActive: {
-    color: '#FFFFFF',
+    color: Theme.colors.neutral,
   },
   centerContainer: {
     flex: 1,
@@ -920,7 +924,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 10,
-    color: '#64748B',
+    color: Theme.colors.textMuted,
     fontSize: 14,
   },
   listContent: {
@@ -932,20 +936,16 @@ const styles = StyleSheet.create({
   },
   productCard: {
     width: '48%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: Theme.colors.neutral,
+    borderRadius: Theme.radius.md,
     padding: 12,
-    shadowColor: '#64748B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: Theme.colors.border,
+    ...Theme.shadows.card,
   },
   productCardDisabled: {
     opacity: 0.55,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Theme.colors.backgroundAlt,
   },
   productHeader: {
     flexDirection: 'row',
@@ -954,32 +954,34 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   categoryBadge: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Theme.colors.tintAccent,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: Theme.radius.pill,
+    borderWidth: 1,
+    borderColor: Theme.colors.borderAccent,
     maxWidth: '70%',
   },
   categoryBadgeText: {
     fontSize: 11,
-    color: '#2563EB',
+    color: Theme.colors.tertiary,
     fontWeight: '600',
   },
   qtyBadge: {
-    backgroundColor: '#10B981',
-    borderRadius: 10,
+    backgroundColor: Theme.colors.success,
+    borderRadius: Theme.radius.pill,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   qtyBadgeText: {
     fontSize: 11,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    color: Theme.colors.neutral,
+    fontWeight: '700',
   },
   productName: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1E293B',
+    color: Theme.colors.textPrimary,
     height: 38,
     marginBottom: 8,
   },
@@ -988,17 +990,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: Theme.colors.borderSubtle,
     paddingTop: 8,
   },
   priceLabel: {
     fontSize: 10,
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
   },
   productPrice: {
     fontSize: 13,
-    fontWeight: '800',
-    color: '#0F172A',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
   },
   stockContainer: {
     alignItems: 'flex-end',
@@ -1008,13 +1010,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   stockSafe: {
-    color: '#10B981',
+    color: Theme.colors.success,
   },
   stockLow: {
-    color: '#F59E0B',
+    color: Theme.colors.warning,
   },
   stockOut: {
-    color: '#EF4444',
+    color: Theme.colors.danger,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -1024,12 +1026,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#475569',
+    color: Theme.colors.textSecondary,
     marginTop: 12,
   },
   emptyDesc: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
     textAlign: 'center',
     marginTop: 4,
     paddingHorizontal: 32,
@@ -1039,54 +1041,53 @@ const styles = StyleSheet.create({
     bottom: 12,
     left: 12,
     right: 12,
-    backgroundColor: '#1E293B',
-    borderRadius: 16,
+    backgroundColor: Theme.colors.primary,
+    borderRadius: Theme.radius.md,
     paddingVertical: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    ...Theme.shadows.floating,
   },
   floatingLeft: {
     flex: 1,
   },
   floatingItemCount: {
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
     fontSize: 12,
     fontWeight: '500',
   },
   floatingTotal: {
-    color: '#FFFFFF',
+    color: Theme.colors.neutral,
     fontSize: 17,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   floatingPayButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: Theme.colors.tertiary,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: Theme.radius.md,
     flexDirection: 'row',
     alignItems: 'center',
+    ...Theme.shadows.accentLift,
   },
   floatingPayButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: Theme.colors.neutral,
+    fontWeight: '600',
     fontSize: 14,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    backgroundColor: 'rgba(26, 26, 26, 0.65)',
     justifyContent: 'flex-end',
   },
   modalContainer: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: Theme.colors.neutral,
+    borderTopLeftRadius: Theme.radius.xl,
+    borderTopRightRadius: Theme.radius.xl,
     maxHeight: '85%',
     minHeight: '40%',
   },
@@ -1097,12 +1098,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Theme.colors.border,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#1E293B',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
   },
   emptyCartBox: {
     padding: 40,
@@ -1112,12 +1113,12 @@ const styles = StyleSheet.create({
   emptyCartText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#475569',
+    color: Theme.colors.textSecondary,
     marginTop: 12,
   },
   emptyCartSub: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
     textAlign: 'center',
     marginTop: 4,
   },
@@ -1130,7 +1131,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Theme.colors.borderSubtle,
   },
   cartItemInfo: {
     flex: 1,
@@ -1139,17 +1140,17 @@ const styles = StyleSheet.create({
   cartItemName: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1E293B',
+    color: Theme.colors.textPrimary,
   },
   cartItemPrice: {
     fontSize: 12,
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
     marginTop: 2,
   },
   cartItemSubtotal: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#2563EB',
+    color: Theme.colors.tertiary,
     marginTop: 2,
   },
   cartItemActions: {
@@ -1157,17 +1158,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   qtyBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor: '#F1F5F9',
+    width: 32,
+    height: 32,
+    borderRadius: Theme.radius.sm,
+    backgroundColor: Theme.colors.backgroundAlt,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cartQtyText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
+    color: Theme.colors.textPrimary,
     marginHorizontal: 10,
   },
   deleteBtn: {
@@ -1176,9 +1179,9 @@ const styles = StyleSheet.create({
   },
   modalFooter: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Theme.colors.neutral,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: Theme.colors.border,
   },
   totalRow: {
     flexDirection: 'row',
@@ -1188,50 +1191,51 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 14,
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
     fontWeight: '600',
   },
   totalValue: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#0F172A',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
   },
   checkoutBtn: {
-    backgroundColor: '#2563EB',
+    backgroundColor: Theme.colors.tertiary,
     paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: Theme.radius.md,
     alignItems: 'center',
+    ...Theme.shadows.accentLift,
   },
   checkoutBtnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+    color: Theme.colors.neutral,
+    fontSize: 15,
+    fontWeight: '600',
   },
   paymentSummaryCard: {
-    backgroundColor: '#EFF6FF',
-    borderRadius: 16,
+    backgroundColor: Theme.colors.tintAccent,
+    borderRadius: Theme.radius.md,
     padding: 16,
     alignItems: 'center',
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: Theme.colors.borderAccent,
   },
   paySummaryLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#1D4ED8',
+    color: Theme.colors.tertiary,
     letterSpacing: 0.5,
   },
   paySummaryAmount: {
     fontSize: 26,
-    fontWeight: '800',
-    color: '#1E40AF',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
     marginTop: 4,
   },
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#475569',
+    color: Theme.colors.textSecondary,
     marginBottom: 8,
   },
   methodRow: {
@@ -1246,37 +1250,37 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: '#F8FAFC',
+    borderRadius: Theme.radius.md,
+    backgroundColor: Theme.colors.background,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: Theme.colors.border,
   },
   methodBtnActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#2563EB',
+    backgroundColor: Theme.colors.tintAccent,
+    borderColor: Theme.colors.tertiary,
   },
   methodText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748B',
+    color: Theme.colors.textMuted,
   },
   methodTextActive: {
-    color: '#2563EB',
+    color: Theme.colors.tertiary,
     fontWeight: '700',
   },
   cashSection: {
     marginTop: 4,
   },
   cashInput: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
+    backgroundColor: Theme.colors.background,
+    borderRadius: Theme.radius.md,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: Theme.colors.border,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 18,
     fontWeight: '700',
-    color: '#0F172A',
+    color: Theme.colors.textPrimary,
   },
   presetRow: {
     flexDirection: 'row',
@@ -1285,76 +1289,76 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   presetBtn: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Theme.colors.backgroundAlt,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: Theme.radius.sm,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Theme.colors.border,
   },
   presetBtnText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#334155',
+    color: Theme.colors.textSecondary,
   },
   changeBox: {
     marginTop: 16,
-    borderRadius: 12,
+    borderRadius: Theme.radius.md,
     padding: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   changeBoxPositive: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: Theme.colors.tintSuccess,
     borderWidth: 1,
     borderColor: '#A7F3D0',
   },
   changeBoxNegative: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Theme.colors.tintDanger,
     borderWidth: 1,
     borderColor: '#FECACA',
   },
   changeLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#334155',
+    color: Theme.colors.textSecondary,
   },
   changeValue: {
     fontSize: 17,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   changeValuePositive: {
-    color: '#059669',
+    color: Theme.colors.success,
   },
   changeValueNegative: {
-    color: '#DC2626',
+    color: Theme.colors.danger,
   },
   receiptSuccessIcon: {
     marginBottom: 8,
   },
   receiptTitle: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#0F172A',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
   },
   receiptDate: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
     marginTop: 2,
   },
   receiptBox: {
     width: '100%',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
+    backgroundColor: Theme.colors.background,
+    borderRadius: Theme.radius.md,
     padding: 16,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Theme.colors.border,
   },
   receiptDivider: {
     height: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Theme.colors.border,
     marginVertical: 10,
   },
   receiptItemRow: {
@@ -1364,14 +1368,14 @@ const styles = StyleSheet.create({
   },
   receiptItemName: {
     fontSize: 13,
-    color: '#334155',
+    color: Theme.colors.textSecondary,
     flex: 1,
     marginRight: 8,
   },
   receiptItemPrice: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#0F172A',
+    color: Theme.colors.textPrimary,
   },
   receiptSummaryRow: {
     flexDirection: 'row',
@@ -1380,35 +1384,35 @@ const styles = StyleSheet.create({
   },
   receiptSumLabel: {
     fontSize: 12,
-    color: '#64748B',
+    color: Theme.colors.textMuted,
   },
   receiptSumVal: {
     fontSize: 12,
-    color: '#334155',
+    color: Theme.colors.textSecondary,
   },
   receiptSumValBold: {
     fontSize: 14,
-    fontWeight: '800',
-    color: '#0F172A',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
   },
   receiptChangeVal: {
     fontSize: 14,
-    fontWeight: '800',
-    color: '#10B981',
+    fontWeight: '700',
+    color: Theme.colors.success,
   },
   newTrxBtn: {
     marginTop: 20,
     width: '100%',
-    backgroundColor: '#1E293B',
+    backgroundColor: Theme.colors.primary,
     paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: Theme.radius.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   newTrxBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: Theme.colors.neutral,
+    fontWeight: '600',
     fontSize: 15,
   },
 });

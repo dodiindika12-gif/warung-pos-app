@@ -33,6 +33,7 @@ import {
 import { callAction } from '../api';
 import { Product, Category, StockHistoryItem } from '../types';
 import BarcodeScannerModal from '../components/BarcodeScannerModal';
+import { Theme } from '../theme';
 
 export default function ProdukScreen() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -479,7 +480,7 @@ export default function ProdukScreen() {
       {/* Product List */}
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#2563EB" />
+          <ActivityIndicator size="large" color={Theme.colors.tertiary} />
           <Text style={styles.loadingText}>Memuat data produk...</Text>
         </View>
       ) : (
@@ -559,7 +560,7 @@ export default function ProdukScreen() {
                     style={styles.cardActionBtn}
                     onPress={() => handleOpenStockHistory(item)}
                   >
-                    <History size={16} color="#64748B" style={{ marginRight: 4 }} />
+                    <History size={16} color={Theme.colors.textMuted} style={{ marginRight: 4 }} />
                     <Text style={styles.cardActionText}>Riwayat</Text>
                   </TouchableOpacity>
 
@@ -567,8 +568,8 @@ export default function ProdukScreen() {
                     style={styles.cardActionBtn}
                     onPress={() => handleAddToShoppingList(item)}
                   >
-                    <ShoppingCart size={16} color="#2563EB" style={{ marginRight: 4 }} />
-                    <Text style={[styles.cardActionText, { color: '#2563EB' }]}>
+                    <ShoppingCart size={16} color={Theme.colors.tertiary} style={{ marginRight: 4 }} />
+                    <Text style={[styles.cardActionText, { color: Theme.colors.tertiary }]}>
                       + Belanja
                     </Text>
                   </TouchableOpacity>
@@ -577,8 +578,8 @@ export default function ProdukScreen() {
                     style={styles.cardActionBtn}
                     onPress={() => handleOpenEditForm(item)}
                   >
-                    <Edit size={16} color="#059669" style={{ marginRight: 4 }} />
-                    <Text style={[styles.cardActionText, { color: '#059669' }]}>
+                    <Edit size={16} color={Theme.colors.success} style={{ marginRight: 4 }} />
+                    <Text style={[styles.cardActionText, { color: Theme.colors.success }]}>
                       Edit
                     </Text>
                   </TouchableOpacity>
@@ -587,8 +588,8 @@ export default function ProdukScreen() {
                     style={[styles.cardActionBtn, { borderRightWidth: 0 }]}
                     onPress={() => handleDeleteProduct(item)}
                   >
-                    <Trash2 size={16} color="#EF4444" style={{ marginRight: 4 }} />
-                    <Text style={[styles.cardActionText, { color: '#EF4444' }]}>
+                    <Trash2 size={16} color={Theme.colors.danger} style={{ marginRight: 4 }} />
+                    <Text style={[styles.cardActionText, { color: Theme.colors.danger }]}>
                       Hapus
                     </Text>
                   </TouchableOpacity>
@@ -599,11 +600,11 @@ export default function ProdukScreen() {
           ListEmptyComponent={
             errorMessage ? (
               <View style={styles.emptyContainer}>
-                <AlertTriangle size={48} color="#EF4444" />
-                <Text style={[styles.emptyTitle, { color: '#EF4444' }]}>Gagal Terhubung ke Server</Text>
+                <AlertTriangle size={48} color={Theme.colors.danger} />
+                <Text style={[styles.emptyTitle, { color: Theme.colors.danger }]}>Gagal Terhubung ke Server</Text>
                 <Text style={styles.emptyDesc}>{errorMessage}</Text>
                 <TouchableOpacity
-                  style={[styles.addBtn, { marginTop: 14, backgroundColor: '#2563EB', paddingHorizontal: 20 }]}
+                  style={[styles.addBtn, { marginTop: 14, backgroundColor: Theme.colors.tertiary, paddingHorizontal: 20 }]}
                   onPress={loadData}
                 >
                   <Text style={styles.addBtnText}>Muat Ulang Data</Text>
@@ -611,13 +612,13 @@ export default function ProdukScreen() {
               </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <Package size={48} color="#CBD5E1" />
+                <Package size={48} color={Theme.colors.textLight} />
                 <Text style={styles.emptyTitle}>Tidak Ada Produk</Text>
                 <Text style={styles.emptyDesc}>
                   {search ? 'Tidak ada produk yang cocok dengan pencarian.' : 'Katalog kosong atau belum ada produk terdaftar.'}
                 </Text>
                 <TouchableOpacity
-                  style={[styles.addBtn, { marginTop: 14, backgroundColor: '#2563EB', paddingHorizontal: 20 }]}
+                  style={[styles.addBtn, { marginTop: 14, backgroundColor: Theme.colors.tertiary, paddingHorizontal: 20 }]}
                   onPress={handleOpenAddForm}
                 >
                   <Text style={styles.addBtnText}>+ Tambah Produk Baru</Text>
@@ -796,10 +797,10 @@ export default function ProdukScreen() {
                           setNewCatName(c.name);
                         }}
                       >
-                        <Edit size={18} color="#2563EB" />
+                        <Edit size={18} color={Theme.colors.tertiary} />
                       </TouchableOpacity>
                       <TouchableOpacity onPress={() => handleDeleteCategory(c)}>
-                        <Trash2 size={18} color="#EF4444" />
+                        <Trash2 size={18} color={Theme.colors.danger} />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -822,7 +823,7 @@ export default function ProdukScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Stock Opname Fisik</Text>
               <TouchableOpacity onPress={() => setIsOpnameModalVisible(false)}>
-                <X size={24} color="#64748B" />
+                <X size={24} color={Theme.colors.textMuted} />
               </TouchableOpacity>
             </View>
 
@@ -843,7 +844,7 @@ export default function ProdukScreen() {
                   style={styles.scanInputBtn}
                   onPress={() => setScannerTarget('opname')}
                 >
-                  <Camera size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
+                  <Camera size={16} color={Theme.colors.neutral} style={{ marginRight: 4 }} />
                   <Text style={styles.scanInputBtnText}>Scan</Text>
                 </TouchableOpacity>
               </View>
@@ -886,11 +887,11 @@ export default function ProdukScreen() {
                             style={{
                               color:
                                 diff > 0
-                                  ? '#10B981'
+                                  ? Theme.colors.success
                                   : diff < 0
-                                  ? '#EF4444'
-                                  : '#64748B',
-                              fontWeight: 'bold',
+                                  ? Theme.colors.danger
+                                  : Theme.colors.textMuted,
+                              fontWeight: '700',
                             }}
                           >
                             {diff > 0 ? `+${diff}` : diff}
@@ -916,7 +917,7 @@ export default function ProdukScreen() {
                 disabled={opnameLoading || opnameItems.length === 0}
               >
                 {opnameLoading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={Theme.colors.neutral} />
                 ) : (
                   <Text style={styles.saveBtnText}>
                     Simpan Penyesuaian Stok ({opnameItems.length} Item)
@@ -945,13 +946,13 @@ export default function ProdukScreen() {
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setIsHistoryModalVisible(false)}>
-                <X size={24} color="#64748B" />
+                <X size={24} color={Theme.colors.textMuted} />
               </TouchableOpacity>
             </View>
 
             {historyLoading ? (
               <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#2563EB" />
+                <ActivityIndicator size="large" color={Theme.colors.tertiary} />
               </View>
             ) : (
               <ScrollView style={{ padding: 16 }}>
@@ -1010,34 +1011,37 @@ export default function ProdukScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Theme.colors.background,
   },
   scanIconBtn: {
-    padding: 6,
-    backgroundColor: '#1E293B',
-    borderRadius: 8,
-    marginLeft: 4,
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: Theme.radius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+    marginLeft: 6,
   },
   scanInputBtn: {
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 12,
+    backgroundColor: Theme.colors.tertiary,
+    paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: Theme.radius.md,
     flexDirection: 'row',
     alignItems: 'center',
+    ...Theme.shadows.accentLift,
   },
   scanInputBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: Theme.colors.neutral,
+    fontWeight: '600',
     fontSize: 13,
   },
   header: {
-    backgroundColor: '#1E293B',
+    backgroundColor: Theme.colors.primary, // #1A1A1A off-black
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingBottom: 18,
+    borderBottomLeftRadius: Theme.radius.lg,
+    borderBottomRightRadius: Theme.radius.lg,
   },
   headerTop: {
     flexDirection: 'row',
@@ -1046,27 +1050,25 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#F8FAFC',
-    letterSpacing: 0.5,
+    ...Theme.typography.display,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
     marginTop: 2,
   },
   addBtn: {
-    backgroundColor: '#2563EB',
+    backgroundColor: Theme.colors.tertiary,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 12,
+    borderRadius: Theme.radius.md,
     flexDirection: 'row',
     alignItems: 'center',
+    ...Theme.shadows.accentLift,
   },
   addBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: Theme.colors.neutral,
+    fontWeight: '600',
     fontSize: 13,
   },
   headerActionRow: {
@@ -1079,33 +1081,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#334155',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
     paddingVertical: 8,
-    borderRadius: 10,
+    borderRadius: Theme.radius.sm,
   },
   subActionBtnText: {
-    color: '#F1F5F9',
+    color: Theme.colors.neutral,
     fontSize: 12,
     fontWeight: '600',
   },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F172A',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: Theme.radius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
     paddingHorizontal: 12,
     height: 44,
   },
   searchInput: {
     flex: 1,
-    color: '#FFFFFF',
+    color: Theme.colors.neutral,
     fontSize: 14,
   },
   categoryScrollWrapper: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Theme.colors.neutral,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: Theme.colors.border,
   },
   categoryScroll: {
     paddingHorizontal: 16,
@@ -1114,22 +1120,22 @@ const styles = StyleSheet.create({
   catPill: {
     paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
+    borderRadius: Theme.radius.pill,
+    backgroundColor: Theme.colors.backgroundAlt,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Theme.colors.border,
   },
   catPillActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: Theme.colors.primary,
+    borderColor: Theme.colors.primary,
   },
   catPillText: {
     fontSize: 13,
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
     fontWeight: '600',
   },
   catPillTextActive: {
-    color: '#FFFFFF',
+    color: Theme.colors.neutral,
   },
   centerContainer: {
     flex: 1,
@@ -1139,23 +1145,19 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 10,
-    color: '#64748B',
+    color: Theme.colors.textMuted,
     fontSize: 14,
   },
   listContent: {
     padding: 14,
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: Theme.colors.neutral,
+    borderRadius: Theme.radius.md,
     marginBottom: 12,
-    shadowColor: '#64748B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 5,
-    elevation: 2,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: Theme.colors.border,
+    ...Theme.shadows.card,
     overflow: 'hidden',
   },
   cardMain: {
@@ -1168,52 +1170,54 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   catBadge: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Theme.colors.tintAccent,
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: Theme.radius.pill,
+    borderWidth: 1,
+    borderColor: Theme.colors.borderAccent,
   },
   catBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#2563EB',
+    color: Theme.colors.tertiary,
   },
   stockBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: Theme.radius.pill,
   },
   stockBadgeSafe: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: Theme.colors.tintSuccess,
   },
   stockBadgeLow: {
-    backgroundColor: '#FFFBEB',
+    backgroundColor: Theme.colors.tintWarning,
   },
   stockBadgeOut: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Theme.colors.tintDanger,
   },
   stockBadgeText: {
     fontSize: 11,
     fontWeight: '700',
   },
   stockBadgeTextSafe: {
-    color: '#059669',
+    color: Theme.colors.success,
   },
   stockBadgeTextLow: {
-    color: '#D97706',
+    color: Theme.colors.warning,
   },
   stockBadgeTextOut: {
-    color: '#DC2626',
+    color: Theme.colors.danger,
   },
   productName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
+    color: Theme.colors.textPrimary,
     marginBottom: 4,
   },
   barcodeText: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
     marginBottom: 8,
   },
   priceRow: {
@@ -1222,32 +1226,32 @@ const styles = StyleSheet.create({
     marginTop: 6,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#F8FAFC',
+    borderTopColor: Theme.colors.borderSubtle,
   },
   label: {
     fontSize: 10,
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
   },
   sellingPrice: {
     fontSize: 14,
-    fontWeight: '800',
-    color: '#0F172A',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
   },
   costPrice: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
   },
   soldValue: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#10B981',
+    color: Theme.colors.success,
   },
   cardActionBar: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    backgroundColor: '#FAFAFA',
+    borderTopColor: Theme.colors.borderSubtle,
+    backgroundColor: Theme.colors.backgroundAlt,
   },
   cardActionBtn: {
     flex: 1,
@@ -1256,12 +1260,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 10,
     borderRightWidth: 1,
-    borderRightColor: '#F1F5F9',
+    borderRightColor: Theme.colors.borderSubtle,
   },
   cardActionText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -1271,24 +1275,24 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#475569',
+    color: Theme.colors.textSecondary,
     marginTop: 12,
   },
   emptyDesc: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
     textAlign: 'center',
     marginTop: 4,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    backgroundColor: 'rgba(26, 26, 26, 0.65)',
     justifyContent: 'flex-end',
   },
   modalContainer: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: Theme.colors.neutral,
+    borderTopLeftRadius: Theme.radius.xl,
+    borderTopRightRadius: Theme.radius.xl,
     maxHeight: '90%',
   },
   modalHeader: {
@@ -1298,85 +1302,87 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Theme.colors.border,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#1E293B',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
   },
   modalSubTitle: {
     fontSize: 12,
-    color: '#64748B',
+    color: Theme.colors.textMuted,
     marginTop: 2,
   },
   inputLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#475569',
+    color: Theme.colors.textSecondary,
     marginBottom: 6,
   },
   textInput: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
+    backgroundColor: Theme.colors.background,
+    borderRadius: Theme.radius.md,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: Theme.colors.border,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#0F172A',
+    color: Theme.colors.textPrimary,
     marginBottom: 14,
   },
   catSelectPill: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#F1F5F9',
+    borderRadius: Theme.radius.pill,
+    backgroundColor: Theme.colors.backgroundAlt,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Theme.colors.border,
   },
   catSelectPillActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: Theme.colors.primary,
+    borderColor: Theme.colors.primary,
   },
   catSelectText: {
     fontSize: 12,
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
     fontWeight: '600',
   },
   catSelectTextActive: {
-    color: '#FFFFFF',
+    color: Theme.colors.neutral,
   },
   inputGrid: {
     flexDirection: 'row',
   },
   modalFooter: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Theme.colors.neutral,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: Theme.colors.border,
   },
   saveBtn: {
-    backgroundColor: '#2563EB',
+    backgroundColor: Theme.colors.tertiary,
     paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: Theme.radius.md,
     alignItems: 'center',
+    ...Theme.shadows.accentLift,
   },
   saveBtnText: {
-    color: '#FFFFFF',
+    color: Theme.colors.neutral,
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   catAddBtn: {
-    backgroundColor: '#2563EB',
+    backgroundColor: Theme.colors.tertiary,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: Theme.radius.md,
     justifyContent: 'center',
+    ...Theme.shadows.accentLift,
   },
   catAddBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: Theme.colors.neutral,
+    fontWeight: '600',
   },
   catItemRow: {
     flexDirection: 'row',
@@ -1384,41 +1390,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Theme.colors.borderSubtle,
   },
   catItemName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1E293B',
+    color: Theme.colors.textPrimary,
   },
   subNote: {
     fontSize: 13,
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
     marginBottom: 12,
   },
   opnameDropdown: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: Theme.colors.neutral,
+    borderRadius: Theme.radius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Theme.colors.border,
     marginBottom: 12,
-    elevation: 3,
+    ...Theme.shadows.card,
   },
   opnameDropItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
+    borderBottomColor: Theme.colors.borderSubtle,
   },
   opnameDropText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#1E293B',
+    color: Theme.colors.textPrimary,
   },
   opnameDropStock: {
     fontSize: 12,
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
   },
   opnameRow: {
     flexDirection: 'row',
@@ -1426,28 +1432,29 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Theme.colors.borderSubtle,
   },
   opnameName: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#1E293B',
+    color: Theme.colors.textPrimary,
   },
   opnameSub: {
     fontSize: 12,
-    color: '#64748B',
+    color: Theme.colors.textMuted,
   },
   opnameInput: {
     width: 70,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Theme.colors.background,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 8,
+    borderColor: Theme.colors.border,
+    borderRadius: Theme.radius.sm,
     paddingHorizontal: 8,
     paddingVertical: 6,
     textAlign: 'center',
     fontSize: 14,
     fontWeight: '700',
+    color: Theme.colors.textPrimary,
   },
   historyRow: {
     flexDirection: 'row',
@@ -1455,31 +1462,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Theme.colors.borderSubtle,
   },
   historyReason: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1E293B',
+    color: Theme.colors.textPrimary,
   },
   historyDate: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
     marginTop: 2,
   },
   historyAmount: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   historyPositive: {
-    color: '#10B981',
+    color: Theme.colors.success,
   },
   historyNegative: {
-    color: '#EF4444',
+    color: Theme.colors.danger,
   },
   emptyText: {
     textAlign: 'center',
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
     marginVertical: 20,
   },
 });

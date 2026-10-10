@@ -30,6 +30,7 @@ import {
 } from 'lucide-react-native';
 import { callAction } from '../api';
 import { Transaction, TransactionItem, DashboardStats } from '../types';
+import { Theme } from '../theme';
 
 export default function LaporanScreen() {
   const [activeTab, setActiveTab] = useState<'transactions' | 'analytics'>('transactions');
@@ -188,7 +189,7 @@ export default function LaporanScreen() {
           >
             <Receipt
               size={16}
-              color={activeTab === 'transactions' ? '#2563EB' : '#94A3B8'}
+              color={activeTab === 'transactions' ? Theme.colors.tertiary : Theme.colors.textMuted}
               style={{ marginRight: 6 }}
             />
             <Text
@@ -210,7 +211,7 @@ export default function LaporanScreen() {
           >
             <TrendingUp
               size={16}
-              color={activeTab === 'analytics' ? '#2563EB' : '#94A3B8'}
+              color={activeTab === 'analytics' ? Theme.colors.tertiary : Theme.colors.textMuted}
               style={{ marginRight: 6 }}
             />
             <Text
@@ -228,7 +229,7 @@ export default function LaporanScreen() {
       {/* Content */}
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#2563EB" />
+          <ActivityIndicator size="large" color={Theme.colors.tertiary} />
           <Text style={styles.loadingText}>Memuat data laporan...</Text>
         </View>
       ) : activeTab === 'transactions' ? (
@@ -373,7 +374,7 @@ export default function LaporanScreen() {
               </View>
 
               <View style={styles.payBreakBox}>
-                <CreditCard size={20} color="#2563EB" />
+                <CreditCard size={20} color={Theme.colors.tertiary} />
                 <Text style={styles.payBreakLabel}>QRIS / Transfer</Text>
                 <Text style={styles.payBreakVal}>
                   Rp {(stats?.qris || 0).toLocaleString('id-ID')}
@@ -390,7 +391,7 @@ export default function LaporanScreen() {
                 style={styles.addExpenseBtn}
                 onPress={() => setIsExpenseModalVisible(true)}
               >
-                <Plus size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                <Plus size={14} color={Theme.colors.neutral} style={{ marginRight: 4 }} />
                 <Text style={styles.addExpenseBtnText}>+ Catat Biaya</Text>
               </TouchableOpacity>
             </View>
@@ -424,8 +425,8 @@ export default function LaporanScreen() {
           {stats?.lowStock && stats.lowStock.length > 0 && (
             <View style={styles.card}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <AlertTriangle size={18} color="#EF4444" style={{ marginRight: 6 }} />
-                <Text style={[styles.cardSectionTitle, { color: '#EF4444' }]}>
+                <AlertTriangle size={18} color={Theme.colors.danger} style={{ marginRight: 6 }} />
+                <Text style={[styles.cardSectionTitle, { color: Theme.colors.danger }]}>
                   Peringatan Stok Menipis (&le; 5)
                 </Text>
               </View>
@@ -465,13 +466,13 @@ export default function LaporanScreen() {
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setSelectedTrx(null)}>
-                <X size={24} color="#64748B" />
+                <X size={24} color={Theme.colors.textMuted} />
               </TouchableOpacity>
             </View>
 
             {loadingTrxItems ? (
               <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#2563EB" />
+                <ActivityIndicator size="large" color={Theme.colors.tertiary} />
               </View>
             ) : (
               <ScrollView style={{ padding: 16 }}>
@@ -583,15 +584,15 @@ export default function LaporanScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Theme.colors.background,
   },
   header: {
-    backgroundColor: '#1E293B',
+    backgroundColor: Theme.colors.primary, // #1A1A1A off-black
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingBottom: 18,
+    borderBottomLeftRadius: Theme.radius.lg,
+    borderBottomRightRadius: Theme.radius.lg,
   },
   headerTop: {
     flexDirection: 'row',
@@ -600,20 +601,19 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#F8FAFC',
-    letterSpacing: 0.5,
+    ...Theme.typography.display,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
     marginTop: 2,
   },
   tabSwitchContainer: {
     flexDirection: 'row',
-    backgroundColor: '#0F172A',
-    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: Theme.radius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
     padding: 4,
   },
   tabSwitchBtn: {
@@ -622,56 +622,57 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: Theme.radius.sm,
   },
   tabSwitchBtnActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Theme.colors.neutral,
+    ...Theme.shadows.glass,
   },
   tabSwitchText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
   },
   tabSwitchTextActive: {
-    color: '#2563EB',
+    color: Theme.colors.primary,
     fontWeight: '700',
   },
   filterBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Theme.colors.neutral,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: Theme.colors.border,
     gap: 10,
   },
   filterLabel: {
     fontSize: 13,
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
     fontWeight: '600',
   },
   dateInput: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 8,
+    backgroundColor: Theme.colors.backgroundAlt,
+    borderRadius: Theme.radius.sm,
     paddingHorizontal: 10,
     paddingVertical: 6,
     fontSize: 13,
-    color: '#0F172A',
+    color: Theme.colors.textPrimary,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: Theme.colors.border,
   },
   todayBtn: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Theme.colors.tintAccent,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: Theme.radius.sm,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: Theme.colors.borderAccent,
   },
   todayBtnText: {
-    color: '#2563EB',
+    color: Theme.colors.tertiary,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -683,23 +684,19 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 10,
-    color: '#64748B',
+    color: Theme.colors.textMuted,
     fontSize: 14,
   },
   trxCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: Theme.colors.neutral,
+    borderRadius: Theme.radius.md,
     padding: 14,
     marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    shadowColor: '#64748B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: Theme.colors.border,
+    ...Theme.shadows.card,
   },
   trxCardLeft: {
     flex: 1,
@@ -708,27 +705,27 @@ const styles = StyleSheet.create({
   trxId: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
+    color: Theme.colors.textPrimary,
   },
   trxTime: {
     fontSize: 12,
-    color: '#64748B',
+    color: Theme.colors.textMuted,
     marginTop: 2,
   },
   trxProfit: {
     fontSize: 12,
-    color: '#059669',
+    color: Theme.colors.success,
     fontWeight: '600',
     marginTop: 2,
   },
   trxAmount: {
     fontSize: 16,
-    fontWeight: '800',
-    color: '#0F172A',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
   },
   trxDetailLink: {
     fontSize: 11,
-    color: '#2563EB',
+    color: Theme.colors.tertiary,
     fontWeight: '600',
     marginTop: 4,
   },
@@ -740,12 +737,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#475569',
+    color: Theme.colors.textSecondary,
     marginTop: 12,
   },
   emptyDesc: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: Theme.colors.textLight,
     textAlign: 'center',
     marginTop: 4,
   },
@@ -757,23 +754,23 @@ const styles = StyleSheet.create({
   periodBtn: {
     flex: 1,
     paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    borderRadius: Theme.radius.md,
+    backgroundColor: Theme.colors.neutral,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Theme.colors.border,
     alignItems: 'center',
   },
   periodBtnActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: Theme.colors.primary,
+    borderColor: Theme.colors.primary,
   },
   periodText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
   },
   periodTextActive: {
-    color: '#FFFFFF',
+    color: Theme.colors.neutral,
     fontWeight: '700',
   },
   kpiGrid: {
@@ -783,42 +780,39 @@ const styles = StyleSheet.create({
   },
   kpiCard: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: Theme.radius.md,
     padding: 14,
     borderWidth: 1,
+    ...Theme.shadows.card,
   },
   kpiLabel: {
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
   kpiValue: {
     fontSize: 20,
-    fontWeight: '800',
+    fontWeight: '700',
     marginTop: 4,
   },
   kpiSub: {
     fontSize: 11,
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
     marginTop: 4,
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: Theme.colors.neutral,
+    borderRadius: Theme.radius.md,
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    shadowColor: '#64748B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderColor: Theme.colors.border,
+    ...Theme.shadows.card,
   },
   cardSectionTitle: {
     fontSize: 15,
-    fontWeight: '800',
-    color: '#1E293B',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
   },
   cardHeaderWithBtn: {
     flexDirection: 'row',
@@ -827,22 +821,22 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   addExpenseBtn: {
-    backgroundColor: '#EF4444',
+    backgroundColor: Theme.colors.danger,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: Theme.radius.sm,
     flexDirection: 'row',
     alignItems: 'center',
   },
   addExpenseBtnText: {
-    color: '#FFFFFF',
+    color: Theme.colors.neutral,
     fontSize: 11,
     fontWeight: '700',
   },
   expenseTotalText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#DC2626',
+    color: Theme.colors.danger,
   },
   payBreakRow: {
     flexDirection: 'row',
@@ -851,22 +845,22 @@ const styles = StyleSheet.create({
   },
   payBreakBox: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
+    backgroundColor: Theme.colors.background,
+    borderRadius: Theme.radius.md,
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Theme.colors.border,
   },
   payBreakLabel: {
     fontSize: 11,
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
     marginTop: 4,
   },
   payBreakVal: {
     fontSize: 15,
-    fontWeight: '800',
-    color: '#0F172A',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
     marginTop: 2,
   },
   sellerRow: {
@@ -875,43 +869,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
+    borderBottomColor: Theme.colors.borderSubtle,
   },
   sellerRank: {
     fontSize: 12,
-    fontWeight: '800',
-    color: '#F59E0B',
+    fontWeight: '700',
+    color: Theme.colors.warning,
     width: 24,
   },
   sellerName: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#1E293B',
+    color: Theme.colors.textPrimary,
     flex: 1,
   },
   sellerSold: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#10B981',
+    color: Theme.colors.success,
   },
   lowStockBadge: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#EF4444',
-    backgroundColor: '#FEF2F2',
+    color: Theme.colors.danger,
+    backgroundColor: Theme.colors.tintDanger,
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: Theme.radius.pill,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    backgroundColor: 'rgba(26, 26, 26, 0.65)',
     justifyContent: 'flex-end',
   },
   modalContainer: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: Theme.colors.neutral,
+    borderTopLeftRadius: Theme.radius.xl,
+    borderTopRightRadius: Theme.radius.xl,
     maxHeight: '85%',
   },
   modalHeader: {
@@ -921,34 +915,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Theme.colors.border,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#1E293B',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
   },
   modalSubTitle: {
     fontSize: 12,
-    color: '#64748B',
+    color: Theme.colors.textMuted,
     marginTop: 2,
   },
   trxDetailInfo: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
+    backgroundColor: Theme.colors.background,
+    borderRadius: Theme.radius.md,
     padding: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Theme.colors.border,
   },
   trxDetailMethod: {
     fontSize: 13,
-    color: '#64748B',
+    color: Theme.colors.textSecondary,
   },
   trxDetailTotal: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#0F172A',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
     marginTop: 4,
   },
   trxItemRow: {
@@ -956,68 +950,69 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: Theme.colors.borderSubtle,
   },
   trxItemName: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#1E293B',
+    color: Theme.colors.textPrimary,
   },
   trxItemSub: {
     fontSize: 11,
-    color: '#64748B',
+    color: Theme.colors.textMuted,
     marginTop: 2,
   },
   trxItemTotal: {
     fontSize: 13,
-    fontWeight: '800',
-    color: '#0F172A',
+    fontWeight: '700',
+    color: Theme.colors.textPrimary,
   },
   modalFooter: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Theme.colors.neutral,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: Theme.colors.border,
   },
   refundBtn: {
-    backgroundColor: '#EF4444',
+    backgroundColor: Theme.colors.danger,
     paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: Theme.radius.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   refundBtnText: {
-    color: '#FFFFFF',
+    color: Theme.colors.neutral,
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   inputLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#475569',
+    color: Theme.colors.textSecondary,
     marginBottom: 6,
   },
   textInput: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
+    backgroundColor: Theme.colors.background,
+    borderRadius: Theme.radius.md,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: Theme.colors.border,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#0F172A',
+    color: Theme.colors.textPrimary,
     marginBottom: 14,
   },
   saveBtn: {
-    backgroundColor: '#2563EB',
+    backgroundColor: Theme.colors.tertiary,
     paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: Theme.radius.md,
     alignItems: 'center',
+    ...Theme.shadows.accentLift,
   },
   saveBtnText: {
-    color: '#FFFFFF',
+    color: Theme.colors.neutral,
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 });

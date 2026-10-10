@@ -4,7 +4,17 @@ Aplikasi kasir (Point of Sale) modern yang dirancang khusus untuk mempermudah ma
 
 ## Changelog & Version History
 
-### [Versi 1.11] - Integrasi Mobile Native (Expo SDK 57), Barcode Scanner Kamera & Gateway Vercel (Current Version)
+### [Versi 1.12] - Perbaikan Build Vercel & Peningkatan Mobile POS (Current Version)
+- **Fix/Build (Vercel Deployment)**:
+  - **Resolusi Dependensi `package-lock.json`**: Menambahkan dan mengunci paket `tesseract.js` pada `package-lock.json` sehingga `npm ci` di Vercel tidak lagi gagal saat proses type-checking OCR (`OCRScanner.tsx`).
+  - **Isolasi TypeScript Web & Mobile**: Mengupdate `tsconfig.json` pada root dengan mengecualikan direktori `mobile` (`"exclude": ["node_modules", "mobile"]`), mencegah konflik type-checker React Native / Expo dengan Next.js saat build di Vercel.
+  - **Penambahan `.vercelignore`**: Menambahkan konfigurasi `.vercelignore` untuk mengabaikan direktori mobile saat proses deploy web ke server Vercel.
+- **Mobile POS**:
+  - Konfigurasi profil build EAS (`mobile/eas.json`) untuk pembuatan APK Android (`preview`).
+  - Penambahan skrip build APK di `mobile/package.json`.
+  - Peningkatan UI tema dan kestabilan komponen scanner kamera mobile.
+
+### [Versi 1.11] - Integrasi Mobile Native (Expo SDK 57), Barcode Scanner Kamera & Gateway Vercel
 - **Fitur Baru (Mobile Native - Expo SDK 57)**:
   - **Barcode Scanner Kamera Terintegrasi**: Menggunakan `expo-camera` (`CameraView`) untuk memindai barcode fisik langsung dari kamera ponsel Android/iOS di Menu Kasir (tambah ke keranjang otomatis), Master Produk (pencarian katalog & input form barang baru), serta Stock Opname & Kulakan.
   - **Menu Kasir (POS) Mobile**: Keranjang belanja interaktif, validasi stok, sistem pembayaran Tunai (kalkulasi kembalian otomatis & pecahan uang pas) dan QRIS, serta struk transaksi digital.
