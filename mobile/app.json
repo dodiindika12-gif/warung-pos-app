@@ -1,11 +1,20 @@
 {
   "expo": {
-    "name": "Warung POS",
+    "name": "Kios Zaakiyah",
     "slug": "warung-pos-mobile",
-    "version": "1.0.0",
+    "version": "1.13.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "translucent": true,
+      "backgroundColor": "#00000000"
+    },
+    "androidNavigationBar": {
+      "barStyle": "dark-content",
+      "backgroundColor": "#FFFFFF"
+    },
     "ios": {
       "supportsTablet": true
     },

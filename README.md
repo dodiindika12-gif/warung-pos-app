@@ -4,7 +4,17 @@ Aplikasi kasir (Point of Sale) modern yang dirancang khusus untuk mempermudah ma
 
 ## Changelog & Version History
 
-### [Versi 1.12] - Perbaikan Build Vercel & Peningkatan Mobile POS (Current Version)
+### [Versi 1.13] - Desain Modern Mobile POS & Penanganan Safe Area Insets (Current Version)
+- **Fix/UI (Safe Area & Edge-to-Edge Navigation)**:
+  - **Bottom System Navigation Clearance**: Mengintegrasikan `SafeAreaProvider` dan `useSafeAreaInsets()` pada navigasi `mobile/App.tsx`. Memberikan padding dan ketinggian dinamis pada bottom tab bar (`height: 60 + bottomInset`, `paddingBottom: bottomInset`) sehingga tombol sistem Android (Home, Back, Recent App) tidak lagi menutupi menu atau label navigasi.
+  - **Top Status Bar & Notch Clearance**: Menggantikan `SafeAreaView` bawaan React Native dengan perhitungan `topInset` dinamis di seluruh layar (`KasirScreen`, `ProdukScreen`, `PembelianScreen`, `LaporanScreen`, `BelanjaScreen`, dan `BarcodeScannerModal`). Header diperluas dengan padding aman agar judul, kolom pencarian, dan tombol tidak bertabrakan dengan kamera punch-hole maupun jam/status bar.
+  - **Modal Footers Clearance**: Menambahkan proteksi `bottomInset` pada seluruh footer modal (Keranjang, Checkout Pembayaran, Struk Digital, Form Produk, Opname, Faktur Kulakan, dan Pengeluaran) sehingga tombol aksi mudah ditekan dan tidak tertutup bar navigasi bawah.
+- **UI Modern & Branding**:
+  - Mengintegrasikan identitas toko resmi **Kios Zaakiyah • POS** dengan status badge online di seluruh header.
+  - Memperbarui palet header ke warna modern `#0F172A` dengan radius sudut 20px, active tab pill dengan background lembut `#EFF6FF` dan aksen `#2563EB`.
+  - Penyesuaian nama aplikasi di `app.json` menjadi **Kios Zaakiyah** dengan konfigurasi warna status bar dan navigasi Android yang terpadu.
+
+### [Versi 1.12] - Perbaikan Build Vercel & Peningkatan Mobile POS
 - **Fix/Build (Vercel Deployment)**:
   - **Resolusi Dependensi `package-lock.json`**: Menambahkan dan mengunci paket `tesseract.js` pada `package-lock.json` sehingga `npm ci` di Vercel tidak lagi gagal saat proses type-checking OCR (`OCRScanner.tsx`).
   - **Isolasi TypeScript Web & Mobile**: Mengupdate `tsconfig.json` pada root dengan mengecualikan direktori `mobile` (`"exclude": ["node_modules", "mobile"]`), mencegah konflik type-checker React Native / Expo dengan Next.js saat build di Vercel.

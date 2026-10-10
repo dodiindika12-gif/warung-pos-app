@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Zap, ZapOff, Camera, AlertCircle } from 'lucide-react-native';
 import { Theme } from '../theme';
 
@@ -47,6 +48,10 @@ export default function BarcodeScannerModal({
     onClose();
   };
 
+  const insets = useSafeAreaInsets();
+  const topOffset = Math.max(insets.top, Platform.OS === 'android' ? 24 : 16) + 12;
+  const bottomOffset = Math.max(insets.bottom, 16) + 12;
+
   return (
     <Modal
       visible={visible}
@@ -57,7 +62,7 @@ export default function BarcodeScannerModal({
       <View style={styles.container}>
         {/* Permission Request State */}
         {!permission?.granted ? (
-          <View style={styles.permissionBox}>
+          <View style={[styles.permissionBox, { paddingTop: topOffset, paddingBottom: bottomOffset }]}>
             <View style={styles.permissionIconWrapper}>
               <Camera size={48} color="#2563EB" />
             </View>
@@ -98,7 +103,7 @@ export default function BarcodeScannerModal({
             />
 
             {/* Top Bar */}
-            <View style={styles.topBar}>
+            <View style={[styles.topBar, { top: topOffset }]}>
               <TouchableOpacity style={styles.circleBtn} onPress={onClose}>
                 <X size={22} color="#FFFFFF" />
               </TouchableOpacity>

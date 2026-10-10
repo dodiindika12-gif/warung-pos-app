@@ -10,10 +10,10 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  SafeAreaView,
-  StatusBar,
+  Platform,
   RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Truck,
   Plus,
@@ -245,15 +245,21 @@ export default function PembelianScreen() {
     return Array.from(map.values());
   }, [purchases]);
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1E293B" />
+  const insets = useSafeAreaInsets();
+  const topInset = Math.max(insets.top, Platform.OS === 'android' ? 24 : 16) + 8;
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'android' ? 14 : 8);
 
+  return (
+    <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: topInset }]}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.headerTitle}>KULAKAN & RESTOCK</Text>
+            <View style={styles.storeBadge}>
+              <View style={styles.onlineDot} />
+              <Text style={styles.storeBadgeText}>Kios Zaakiyah • Kulakan</Text>
+            </View>
+            <Text style={styles.headerTitle}>Kulakan & Faktur</Text>
             <Text style={styles.headerSubtitle}>Manajemen Pembelian Grosir</Text>
           </View>
         </View>
@@ -578,7 +584,7 @@ export default function PembelianScreen() {
               )}
             </ScrollView>
 
-            <View style={styles.modalFooter}>
+            <View style={[styles.modalFooter, { paddingBottom: bottomInset + 12 }]}>
               <TouchableOpacity
                 style={[
                   styles.submitInvoiceBtn,
@@ -602,7 +608,7 @@ export default function PembelianScreen() {
         onRequestClose={() => setSelectedHistoryGroup(null)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, { maxHeight: '85%' }]}>
+          <View style={[styles.modalContainer, { maxHeight: '85%', paddingBottom: bottomInset + 16 }]}>
             <View style={styles.modalHeader}>
               <View>
                 <Text style={styles.modalTitle}>
@@ -658,7 +664,7 @@ export default function PembelianScreen() {
         onScan={handleBarcodeScanned}
         title="Scan Barcode Kulakan"
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -668,12 +674,33 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.background,
   },
   header: {
-    backgroundColor: Theme.colors.primary, // #1A1A1A off-black
+    backgroundColor: '#0F172A',
     paddingHorizontal: 16,
-    paddingTop: 16,
     paddingBottom: 18,
-    borderBottomLeftRadius: Theme.radius.lg,
-    borderBottomRightRadius: Theme.radius.lg,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  storeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+  onlineDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10B981',
+    marginRight: 6,
+  },
+  storeBadgeText: {
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: '600',
   },
   headerTop: {
     flexDirection: 'row',
@@ -682,7 +709,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   headerTitle: {
-    ...Theme.typography.display,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
   headerSubtitle: {
     fontSize: 12,

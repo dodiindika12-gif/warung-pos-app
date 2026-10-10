@@ -10,10 +10,10 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  SafeAreaView,
-  StatusBar,
+  Platform,
   RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ShoppingCart,
   Search,
@@ -312,20 +312,26 @@ export default function KasirScreen() {
     );
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1E293B" />
+  const insets = useSafeAreaInsets();
+  const topInset = Math.max(insets.top, Platform.OS === 'android' ? 24 : 16) + 8;
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'android' ? 14 : 8);
 
+  return (
+    <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: topInset }]}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.headerTitle}>KASIR POS</Text>
-            <Text style={styles.headerSubtitle}>Warung & Toko Pintar</Text>
+            <View style={styles.storeBadge}>
+              <View style={styles.onlineDot} />
+              <Text style={styles.storeBadgeText}>Kios Zaakiyah • POS</Text>
+            </View>
+            <Text style={styles.headerTitle}>Kasir Pintar</Text>
           </View>
           <TouchableOpacity
             style={styles.cartButton}
             onPress={() => setIsCartModalVisible(true)}
+            activeOpacity={0.8}
           >
             <ShoppingCart size={22} color="#FFFFFF" />
             {totalCartCount > 0 && (
@@ -552,7 +558,7 @@ export default function KasirScreen() {
             )}
 
             {cart.length > 0 && (
-              <View style={styles.modalFooter}>
+              <View style={[styles.modalFooter, { paddingBottom: bottomInset + 12 }]}>
                 <View style={styles.totalRow}>
                   <Text style={styles.totalLabel}>Total Tagihan:</Text>
                   <Text style={styles.totalValue}>
@@ -708,7 +714,7 @@ export default function KasirScreen() {
               )}
             </ScrollView>
 
-            <View style={styles.modalFooter}>
+            <View style={[styles.modalFooter, { paddingBottom: bottomInset + 12 }]}>
               <TouchableOpacity
                 style={[styles.checkoutBtn, checkoutLoading && { opacity: 0.7 }]}
                 onPress={handleProcessCheckout}
@@ -735,7 +741,7 @@ export default function KasirScreen() {
         onRequestClose={() => setSuccessReceipt(null)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, { maxHeight: '90%' }]}>
+          <View style={[styles.modalContainer, { maxHeight: '90%', paddingBottom: bottomInset + 16 }]}>
             <ScrollView contentContainerStyle={{ padding: 24, alignItems: 'center' }}>
               <View style={styles.receiptSuccessIcon}>
                 <CheckCircle2 size={54} color="#10B981" />
@@ -823,12 +829,33 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   header: {
-    backgroundColor: Theme.colors.primary, // #1A1A1A off-black
+    backgroundColor: '#0F172A',
     paddingHorizontal: 16,
-    paddingTop: 16,
     paddingBottom: 18,
-    borderBottomLeftRadius: Theme.radius.lg,
-    borderBottomRightRadius: Theme.radius.lg,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  storeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+  onlineDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10B981',
+    marginRight: 6,
+  },
+  storeBadgeText: {
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: '600',
   },
   headerTop: {
     flexDirection: 'row',
@@ -837,12 +864,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   headerTitle: {
-    ...Theme.typography.display,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: Theme.colors.textLight,
-    marginTop: 2,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
   cartButton: {
     width: 44,
